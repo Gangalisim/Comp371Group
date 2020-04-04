@@ -15,7 +15,7 @@ generated items, we will also feature assets that will not be repeated, like a
 bridge or tunnel, and as such will not be procedurally generated. The user of
 our program may be able to enter some parameters that controls how the
 world would be generated. Once generated, the world can be traversed by the
-user in a rst person view that will restrict the user from passing through any
+user in a first person view that will restrict the user from passing through any
 of the assets.
 In order to do this, we will split the objectives in a way that integration can
 be managed easily. We will have a single group member create the base of the
