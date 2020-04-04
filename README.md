@@ -21,7 +21,7 @@ In order to do this, we will split the objectives in a way that integration can
 be managed easily. We will have a single group member create the base of the
 world and accomodation of user inputs. This will allow another member to
 focus on the generation of the repeated assets. Another member will be in
-charge of the import and integration of the nonrepeated assets. The nal
+charge of the import and integration of the nonrepeated assets. The final
 group member will be in charge of the user traversal and collision.
 This roadmap is tentative, as our world that we wish to create may change
 over time. If we feel that a certain part of the workload is too heavy or too
