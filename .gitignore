@@ -1,0 +1,5 @@
+
+*.bat
+ThirdParty/
+Build/
+Bin/
