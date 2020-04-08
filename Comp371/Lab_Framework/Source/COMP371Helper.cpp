@@ -6,13 +6,12 @@
 GLFWwindow* window = NULL;
 
 struct VertexTexture {
-	VertexTexture(vec3 _position, vec3 _color, vec3 _normal, vec2 _uv)
-		: position(_position), color(_color), normal(_normal), uv(_uv) {}
+	VertexTexture(vec3 _position, vec2 _uv, vec3 _normal)
+		: position(_position), uv(_uv), normal(_normal) {}
 
 	glm::vec3 position;
-	glm::vec3 color;
-	glm::vec3 normal;
 	glm::vec2 uv;
+	glm::vec3 normal;
 };
 
 bool initContext() {     // Initialize GLFW and OpenGL version
@@ -151,54 +150,54 @@ int compileAndLinkShaders(string vertexPath, string fragmentPath)
 int createVertexArrayObjectCube()
 {
 	// Cube model
-	VertexTexture vertexArray[] = {  // position,      color (white),            normal                     uv
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)), //left
-		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f)),
+	VertexTexture vertexArray[] = {  // position,        uv                   normal
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f)), //left
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec2(1.0f, 0.0f),  vec3(-1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec2(1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f)),
 
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f),  vec2(1.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(0.0f, 0.0f), vec3(-1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f),  vec2(1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec2(0.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f)), // far
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 0.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f)), // far
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec2(1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f)),
-		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 0.0f)),
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec2(0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)),
 
-		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f)), // near
-		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f)),
-		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)), // near
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec2(0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f)),
-		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec2(1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)), // right
-		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
-		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec2(0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f)), // right
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec2(1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec2(1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
-		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)),
-		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec2(1.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec2(0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec2(0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f)), // top
-		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)), // top
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec2(1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec2(1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec2(0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec2(0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 1.0f)), // bottom
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f)),
-		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec2(1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f)), // bottom
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec2(1.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f)),
 
-		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 1.0f)),
-		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f))
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec2(1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec2(0.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec2(0.0f, 0.0f), vec3(0.0f, -1.0f, 0.0f))
 	};
 
 
@@ -224,12 +223,12 @@ int createVertexArrayObjectCube()
 	glEnableVertexAttribArray(0);
 
 
-	glVertexAttribPointer(1,                            // attribute 1 matches aColor in Vertex Shader
-		3,
+	glVertexAttribPointer(1,          // attribute 1 matches aUV in Vertex Shader
+		2,
 		GL_FLOAT,
 		GL_FALSE,
 		sizeof(VertexTexture),
-		(void*)sizeof(vec3)      // color is offseted a vec3 (comes after position)
+		(void*)sizeof(vec3)      // UV is offseted a vec3 (comes after position)
 	);
 	glEnableVertexAttribArray(1);
 
@@ -239,19 +238,9 @@ int createVertexArrayObjectCube()
 		GL_FLOAT,
 		GL_FALSE,
 		sizeof(VertexTexture),
-		(void*)(2 * sizeof(vec3)) // Normal is Offseted by 2 vec3 (see class Vertex)
+		(void*)((sizeof(vec3)) + (sizeof(vec2))) // Normal is Offseted by 1 vec3 and 1 vec2(see class VertexTexture)
 	);
 	glEnableVertexAttribArray(2);
-
-	// 4th attribute buffer : uv
-	glVertexAttribPointer(3,
-		2, // Size is 2 because it's a vec2
-		GL_FLOAT,
-		GL_FALSE,
-		sizeof(VertexTexture),
-		(void*)(3 * sizeof(vec3)) // Normal is Offseted by 3 vec3 (see class VertexTexture)
-	);
-	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBindVertexArray(0);
@@ -262,14 +251,14 @@ int createVertexArrayObjectCube()
 int createVertexArrayObjectGround() {
 
 	VertexTexture vertexArray[] = {
-		// position,                        color,                   normal                 uv
-		VertexTexture(vec3(-1.0f, 0.0f, 1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 0.0f)), // Bottom left point
-		VertexTexture(vec3(1.0f, 0.0f, 1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f)), // Bottom right point
-		VertexTexture(vec3(1.0f, 0.0f, -1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 1.0f)), // Top right point
+		// position,                               uv						normal
+		VertexTexture(vec3(-1.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)), // Bottom left point
+		VertexTexture(vec3(1.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)), // Bottom right point
+		VertexTexture(vec3(1.0f, 0.0f, -1.0f), vec2(1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)), // Top right point
 
-		VertexTexture(vec3(-1.0f, 0.0f, 1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 0.0f)), // Bottom left point
-		VertexTexture(vec3(1.0f, 0.0f, -1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 1.0f)), // Top right point
-		VertexTexture(vec3(-1.0f, 0.0f, -1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f)), // Top Left point
+		VertexTexture(vec3(-1.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)), // Bottom left point
+		VertexTexture(vec3(1.0f, 0.0f, -1.0f), vec2(1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)), // Top right point
+		VertexTexture(vec3(-1.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)), // Top Left point
 	};
 
 	// Create a vertex array
@@ -294,13 +283,13 @@ int createVertexArrayObjectGround() {
 	);
 	glEnableVertexAttribArray(0);
 
-	// 2nd attribute buffer : vertex color
+	// 2nd attribute buffer : vertex uv
 	glVertexAttribPointer(1,
-		3,
+		2,
 		GL_FLOAT,
 		GL_FALSE,
 		sizeof(VertexTexture),
-		(void*)sizeof(vec3)    // Color is Offseted by vec3 (see class Vertex)
+		(void*)sizeof(vec3)    // Uv is Offseted by vec3 (see class VertexTexture)
 	);
 	glEnableVertexAttribArray(1);
 
@@ -311,19 +300,9 @@ int createVertexArrayObjectGround() {
 		GL_FLOAT,
 		GL_FALSE,
 		sizeof(VertexTexture),
-		(void*)(2 * sizeof(vec3)) // Normal is Offseted by 2 vec3 (see class Vertex)
+		(void*)((sizeof(vec3)) + (sizeof(vec2))) // Normal is Offseted by 1 vec3  and 1 vec2(see class VertexTexture)
 	);
 	glEnableVertexAttribArray(2);
-
-	// 4th attribute buffer : uv
-	glVertexAttribPointer(3,
-		2, // Size is 2 because it's a vec2
-		GL_FLOAT,
-		GL_FALSE,
-		sizeof(VertexTexture),
-		(void*)(3 * sizeof(vec3)) // Normal is Offseted by 3 vec3 (see class VertexTexture)
-	);
-	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBindVertexArray(0);

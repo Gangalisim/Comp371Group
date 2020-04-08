@@ -5,14 +5,13 @@ in vec3 FragPos;
 
 in vec4 fragment_position_light_space;
 		
-uniform vec3 lightPos = vec3(25.0f, 300.0f, -200.0f);
+uniform vec3 lightPos = vec3(0.001f, 150.0f, -300.0f);
 uniform float angleZ = 0.0;
 uniform vec3 viewPos;
 uniform float shininess = 64.0;
 uniform float specularStrength = 0.5;
 uniform float ambientStrength = 0.1;
 
-uniform sampler2D diffuseTexture;
 uniform sampler2D shadowMap;
 		
 out vec4 FragColor;

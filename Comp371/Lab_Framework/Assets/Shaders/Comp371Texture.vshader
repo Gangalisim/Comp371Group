@@ -1,13 +1,14 @@
 #version 330 core
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
+layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
-layout (location = 3) in vec2 aUV;
 
 uniform mat4 worldMatrix = mat4(1.0);
 uniform mat4 viewMatrix = mat4(1.0);  // default value for view matrix (identity)
 uniform mat4 projectionMatrix = mat4(1.0);
+
+uniform vec3 aColor = vec3(1.0f, 1.0f, 1.0f);
 uniform mat4 lightSpaceMatrix = mat4(1.0);
 uniform float uvMultiplier = 1.0;
 

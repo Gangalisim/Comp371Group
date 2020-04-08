@@ -9,8 +9,6 @@
 using namespace glm;
 using namespace std;
 
-int createVertexArrayObject();
-
 int main(int argc, char*argv[])
 {
 	if (!initContext()) return -1;
@@ -36,7 +34,6 @@ int main(int argc, char*argv[])
 	//------------------------------------Shader Programs----------------------------------------//
 
 	// Compile and link shaders here ...
-	int shaderProgram = compileAndLinkShaders("Comp371.vshader", "Comp371.fshader");
 	int shaderProgramBasic = compileAndLinkShaders("Comp371Basic.vshader", "Comp371Basic.fshader");
 	int shaderProgramTexture = compileAndLinkShaders("Comp371Texture.vshader", "Comp371Texture.fshader");
 	int shaderProgramShadow = compileAndLinkShaders("Comp371Shadow.vshader", "Comp371Shadow.fshader");
@@ -55,7 +52,7 @@ int main(int argc, char*argv[])
 	glGenTextures(1, &depthMap);
 	glActiveTexture(GL_TEXTURE0); // Texture2 for shadow rendering because Texture1 and texture2 is for ground and nose textures
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	setTexture(shaderProgram, "shadowMap", 0);
+	setTexture(shaderProgramBasic, "shadowMap", 0);
 	setTexture(shaderProgramTexture, "shadowMap", 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -78,14 +75,14 @@ int main(int argc, char*argv[])
 	//----------------------------------------Camera------------------------------------------//
 
 	// Camera parameters for view transform
-	vec3 cameraPosition(0.6f, 1.0f, 10.0f);
+	vec3 cameraPosition(0.6f, 1.0f, 1.0f);
 	vec3 cameraLookAt(0.0f, 0.0f, -1.0f);
 	vec3 cameraUp(0.0f, 1.0f, 0.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraDirection = normalize(cameraPosition - cameraTarget);
 
 	// THE FOLLOWING IS IMPORTANT FOR THE LIGHTING
-	setVec3(shaderProgram, "viewPos", cameraPosition);
+	setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 	setVec3(shaderProgramTexture, "viewPos", cameraPosition);
 
 	// Other camera parameters
@@ -106,7 +103,7 @@ int main(int argc, char*argv[])
 		0.01f, 800.0f);   // near and far (near > 0)
 
 
-	setMat4(shaderProgram, "projectionMatrix", projectionMatrix);
+	setMat4(shaderProgramBasic, "projectionMatrix", projectionMatrix);
 	setMat4(shaderProgramTexture, "projectionMatrix", projectionMatrix);
 	setMat4(shaderProgramLightSource, "projectionMatrix", projectionMatrix);
 
@@ -117,14 +114,13 @@ int main(int argc, char*argv[])
 		 cameraLookAt,  // center
 		cameraUp); // up
 
-	setMat4(shaderProgram, "viewMatrix", viewMatrix);
+	setMat4(shaderProgramBasic, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
 
 	//-----------------------------------------VAOs--------------------------------------------//
 
 	// Define and upload geometry to the GPU here ...
-	int vao = createVertexArrayObject();
 	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
 
@@ -157,12 +153,14 @@ int main(int argc, char*argv[])
 
 		//-----------------------------------------SHADOWS--------------------------------------//
 
-		vec3 lightPos = vec3(25.0f, 300.0f, -200.0f);
-		mat4 lightProjectionMatrix = ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 400.0f);
+		vec3 lightPos = vec3(0.001f, 150.0f, -300.0f);
+		mat4 lightProjectionMatrix = ortho(-200.0f, 200.0f, -200.0f, 200.0f, 1.0f, 400.0f);
 		mat4 lightViewMatrix = lookAt(lightPos, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 		mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
-		setMat4(shaderProgram, "lightSpaceMatrix", lightSpaceMatrix);
+		setVec3(shaderProgramBasic, "lightPos", lightPos);
+		setVec3(shaderProgramTexture, "lightPos", lightPos);
+		setMat4(shaderProgramBasic, "lightSpaceMatrix", lightSpaceMatrix);
 		setMat4(shaderProgramTexture, "lightSpaceMatrix", lightSpaceMatrix);
 
 		glCullFace(GL_FRONT);
@@ -191,20 +189,21 @@ int main(int argc, char*argv[])
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//Draw light source
+		//----------------------------------Draw light source-----------------------------------//
 		glBindVertexArray(vaoCube);
 		glUseProgram(shaderProgramLightSource);
 		mat4 lightSourceMatrix = translate(mat4(1.0), lightPos) * scale(mat4(1.0), vec3(30.0f, 30.0f, 30.0f));
 		setMat4(shaderProgramLightSource, "worldMatrix", lightSourceMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// Draw ground
+		//----------------------------------Draw ground-----------------------------------------//
 		glBindVertexArray(vaoGround);
 		glUseProgram(shaderProgramTexture);
 
 		groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * 
 			scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f)); // 100 * 100 grid now
 		setMat4(shaderProgramTexture, "worldMatrix", groundWorldMatrix);
+		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
 
 		// The following is to make the grass texture repeat so that it doesn't become blurry
 		setFloat(shaderProgramTexture, "uvMultiplier", 12.0f);
@@ -214,20 +213,9 @@ int main(int argc, char*argv[])
 		glUniform1i(textureLocation, 1);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		setFloat(shaderProgramTexture, "uvMultiplier", 1.0f);
+		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
 
 		//----------------------------------------------------------------------------------------//
-
-		//glUseProgram(shaderProgram);
-		//glBindVertexArray(vao);
-		//{
-		//	// In third person view, let's draw the spinning cube in world space, like any other models
-		//	mat4 spinningCubeWorldMatrix = translate(mat4(1.0f), cameraPosition) *
-		//		rotate(mat4(1.0f), radians(spinningCubeAngle), vec3(0.0f, 1.0f, 0.0f)) *
-		//		scale(mat4(1.0f), vec3(2.0f, 2.0f, 2.0f));
-
-		//	glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &spinningCubeWorldMatrix[0][0]);
-		//}
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 		glBindVertexArray(0);
@@ -241,8 +229,6 @@ int main(int argc, char*argv[])
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 
-		// This was solution for Lab02 - Moving camera exercise
-		// We'll change this to be a first or third person camera
 		bool fastCam = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
 		float currentCameraSpeed = (fastCam) ? cameraFastSpeed : cameraSpeed;
 		
@@ -280,8 +266,6 @@ int main(int argc, char*argv[])
 		glm::normalize(cameraSideVector);
 		
 
-		// @TODO 5 = use camera lookat and side vectors to update positions with ASDW
-		// adjust code below
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // move camera to the left
 		{
 			cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
@@ -301,15 +285,15 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 		}
-		setVec3(shaderProgram, "viewPos", cameraPosition);
+		setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 		setVec3(shaderProgramTexture, "viewPos", cameraPosition);
 
 		mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
 
-		setMat4(shaderProgram, "viewMatrix", viewMatrix);
+		setMat4(shaderProgramBasic, "viewMatrix", viewMatrix);
 		setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 		setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
-		glUseProgram(shaderProgram);
+		glUseProgram(shaderProgramBasic);
 
 	}
 
@@ -318,96 +302,5 @@ int main(int argc, char*argv[])
 	glfwTerminate();
 
 	return 0;
-}
-
-int createVertexArrayObject()
-{
-	// Cube model
-	vec3 vertexArray[] = {  // position,                            color
-		vec3(-0.5f,-0.5f,-0.5f), vec3(1.0f, 0.0f, 0.0f), //left - red
-		vec3(-0.5f,-0.5f, 0.5f), vec3(1.0f, 0.0f, 0.0f),
-		vec3(-0.5f, 0.5f, 0.5f), vec3(1.0f, 0.0f, 0.0f),
-
-		vec3(-0.5f,-0.5f,-0.5f), vec3(1.0f, 0.0f, 0.0f),
-		vec3(-0.5f, 0.5f, 0.5f), vec3(1.0f, 0.0f, 0.0f),
-		vec3(-0.5f, 0.5f,-0.5f), vec3(1.0f, 0.0f, 0.0f),
-
-		vec3(0.5f, 0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f), // far - blue
-		vec3(-0.5f,-0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f),
-		vec3(-0.5f, 0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f),
-
-		vec3(0.5f, 0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f),
-		vec3(0.5f,-0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f),
-		vec3(-0.5f,-0.5f,-0.5f), vec3(0.0f, 0.0f, 1.0f),
-
-		vec3(0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 1.0f), // bottom - turquoise
-		vec3(-0.5f,-0.5f,-0.5f), vec3(0.0f, 1.0f, 1.0f),
-		vec3(0.5f,-0.5f,-0.5f), vec3(0.0f, 1.0f, 1.0f),
-
-		vec3(0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 1.0f),
-		vec3(-0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 1.0f),
-		vec3(-0.5f,-0.5f,-0.5f), vec3(0.0f, 1.0f, 1.0f),
-
-		vec3(-0.5f, 0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f), // near - green
-		vec3(-0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f),
-		vec3(0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f),
-
-		vec3(0.5f, 0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f),
-		vec3(-0.5f, 0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f),
-		vec3(0.5f,-0.5f, 0.5f), vec3(0.0f, 1.0f, 0.0f),
-
-		vec3(0.5f, 0.5f, 0.5f), vec3(1.0f, 0.0f, 1.0f), // right - purple
-		vec3(0.5f,-0.5f,-0.5f), vec3(1.0f, 0.0f, 1.0f),
-		vec3(0.5f, 0.5f,-0.5f), vec3(1.0f, 0.0f, 1.0f),
-
-		vec3(0.5f,-0.5f,-0.5f), vec3(1.0f, 0.0f, 1.0f),
-		vec3(0.5f, 0.5f, 0.5f), vec3(1.0f, 0.0f, 1.0f),
-		vec3(0.5f,-0.5f, 0.5f), vec3(1.0f, 0.0f, 1.0f),
-
-		vec3(0.5f, 0.5f, 0.5f), vec3(1.0f, 1.0f, 0.0f), // top - yellow
-		vec3(0.5f, 0.5f,-0.5f), vec3(1.0f, 1.0f, 0.0f),
-		vec3(-0.5f, 0.5f,-0.5f), vec3(1.0f, 1.0f, 0.0f),
-
-		vec3(0.5f, 0.5f, 0.5f), vec3(1.0f, 1.0f, 0.0f),
-		vec3(-0.5f, 0.5f,-0.5f), vec3(1.0f, 1.0f, 0.0f),
-		vec3(-0.5f, 0.5f, 0.5f), vec3(1.0f, 1.0f, 0.0f)
-	};
-
-
-	// Create a vertex array
-	GLuint vertexArrayObject;
-	glGenVertexArrays(1, &vertexArrayObject);
-	glBindVertexArray(vertexArrayObject);
-
-
-	// Upload Vertex Buffer to the GPU, keep a reference to it (vertexBufferObject)
-	GLuint vertexBufferObject;
-	glGenBuffers(1, &vertexBufferObject);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0,                   // attribute 0 matches aPos in Vertex Shader
-		3,                   // size
-		GL_FLOAT,            // type
-		GL_FALSE,            // normalized?
-		2 * sizeof(vec3), // stride - each vertex contain 2 vec3 (position, color)
-		(void*)0             // array buffer offset
-	);
-	glEnableVertexAttribArray(0);
-
-
-	glVertexAttribPointer(1,                            // attribute 1 matches aColor in Vertex Shader
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		2 * sizeof(vec3),
-		(void*)sizeof(vec3)      // color is offseted a vec3 (comes after position)
-	);
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-	glBindVertexArray(0);
-
-	return vertexArrayObject;
 }
 
