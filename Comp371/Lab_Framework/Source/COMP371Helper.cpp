@@ -148,6 +148,117 @@ int compileAndLinkShaders(string vertexPath, string fragmentPath)
 	return shaderProgram;
 }
 
+int createVertexArrayObjectCube()
+{
+	// Cube model
+	VertexTexture vertexArray[] = {  // position,      color (white),            normal                     uv
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)), //left
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f)),
+
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f),  vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f)), // far
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 1.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, -1.0f), vec2(1.0f, 0.0f)),
+
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f)), // near
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f), vec2(1.0f, 0.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)), // right
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f)),
+
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.0f, 0.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f)), // top
+		VertexTexture(vec3(0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f)),
+
+		VertexTexture(vec3(0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 1.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f), vec2(0.0f, 0.0f)),
+
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 1.0f)), // bottom
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f)),
+		VertexTexture(vec3(0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 0.0f)),
+
+		VertexTexture(vec3(0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(1.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f, 0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 1.0f)),
+		VertexTexture(vec3(-0.5f, 0.0f,-0.5f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f), vec2(0.0f, 0.0f))
+	};
+
+
+	// Create a vertex array
+	GLuint vertexArrayObject;
+	glGenVertexArrays(1, &vertexArrayObject);
+	glBindVertexArray(vertexArrayObject);
+
+
+	// Upload Vertex Buffer to the GPU, keep a reference to it (vertexBufferObject)
+	GLuint vertexBufferObject;
+	glGenBuffers(1, &vertexBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0,                   // attribute 0 matches aPos in Vertex Shader
+		3,                   // size
+		GL_FLOAT,            // type
+		GL_FALSE,            // normalized?
+		sizeof(VertexTexture), // stride - each vertex contain 2 vec3 (position, color)
+		(void*)0             // array buffer offset
+	);
+	glEnableVertexAttribArray(0);
+
+
+	glVertexAttribPointer(1,                            // attribute 1 matches aColor in Vertex Shader
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(VertexTexture),
+		(void*)sizeof(vec3)      // color is offseted a vec3 (comes after position)
+	);
+	glEnableVertexAttribArray(1);
+
+	// 3rd attribute buffer : vertex normal
+	glVertexAttribPointer(2,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(VertexTexture),
+		(void*)(2 * sizeof(vec3)) // Normal is Offseted by 2 vec3 (see class Vertex)
+	);
+	glEnableVertexAttribArray(2);
+
+	// 4th attribute buffer : uv
+	glVertexAttribPointer(3,
+		2, // Size is 2 because it's a vec2
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(VertexTexture),
+		(void*)(3 * sizeof(vec3)) // Normal is Offseted by 3 vec3 (see class VertexTexture)
+	);
+	glEnableVertexAttribArray(3);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBindVertexArray(0);
+
+	return vertexArrayObject;
+}
+
 int createVertexArrayObjectGround() {
 
 	VertexTexture vertexArray[] = {
@@ -263,4 +374,34 @@ GLuint loadTexture(const char* filename)
 	stbi_image_free(data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return textureId;
+}
+
+GLuint matrixLocation;
+
+void setMat4(int shaderProgram, const GLchar* location, mat4 matrix)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);
+	glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, &matrix[0][0]);
+}
+
+void setVec3(int shaderProgram, const GLchar* location, vec3 vector)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
+	glUniform3f(matrixLocation, vector.x, vector.y, vector.z);
+}
+
+void setFloat(int shaderProgram, const GLchar* location, float value)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
+	glUniform1f(matrixLocation, value);
+}
+
+void setTexture(int shaderProgram, const GLchar* location, int value)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
+	glUniform1i(matrixLocation, value);
 }

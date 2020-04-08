@@ -10,9 +10,9 @@ in vec4 fragment_position_light_space;
 
 uniform sampler2D textureSampler;
 
-uniform vec3 lightPos;
+uniform vec3 lightPos = vec3(25.0f, 300.0f, -200.0f);
 uniform float angleZ = 0.0;
-uniform vec3 viewPos;
+uniform vec3 viewPos = vec3(1.0f, 1.0f, 1.0f);
 uniform float shininess = 64.0;
 uniform float specularStrength = 0.5;
 uniform float ambientStrength = 0.1;
@@ -51,7 +51,7 @@ float ShadowCalculation(vec4 fragment_position_light_space)
 
 void main()
 {
-   /*//vec3 color = texture(diffuseTexture, vertexUV).rgb;
+   //vec3 color = texture(diffuseTexture, vertexUV).rgb;
 
    vec3 lightColor = vec3(1.0f, 1.0f, 1.0f); // white
 
@@ -61,7 +61,7 @@ void main()
    //  ------------------Diffuse------------------- //
    vec3 normalRotate = vec3((Normal.x * cos(angleZ)) + (Normal.z * sin(angleZ)), Normal.y, (-Normal.x * sin(angleZ)) + (Normal.z * cos(angleZ)));
    vec3 norm = normalize(normalRotate);
-   vec3 lightDir = normalize(lightPos - FragPos);
+   vec3 lightDir = normalize(lightPos);
    float diff = max(dot(norm, lightDir), 0.0);
    vec3 diffuse = diff * lightColor;
 		   
@@ -74,8 +74,8 @@ void main()
    
    //  ------------------Combined------------------- //
    float shadow = ShadowCalculation(fragment_position_light_space);  
-   vec3 result = (ambient + (1.0 - shadow) * (diffuse + specular)) * vec3(vertexColor);*/
+   vec3 result = (ambient + (1.0 - shadow) * (diffuse + specular)) * vec3(vertexColor);
    
    
-   FragColor = texture(textureSampler, vertexUV); // * vec4(result, 1.0);
+   FragColor = texture(textureSampler, vertexUV) * vec4(result, 1.0);
 }

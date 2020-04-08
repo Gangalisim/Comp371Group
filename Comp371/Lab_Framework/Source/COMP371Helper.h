@@ -24,6 +24,11 @@ extern GLFWwindow* window;
 
 bool initContext();
 int compileAndLinkShaders(string vertexPath, string fragmentPath);
-//int createVertexArrayObjectCube();
+int createVertexArrayObjectCube();
 int createVertexArrayObjectGround();
 GLuint loadTexture(const char* filename);
+
+void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
+void setVec3(int shaderProgram, const GLchar* location, vec3 vector);
+void setFloat(int shaderProgram, const GLchar* location, float value);
+void setTexture(int shaderProgram, const GLchar* location, int value);

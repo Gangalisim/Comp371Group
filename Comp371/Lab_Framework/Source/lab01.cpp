@@ -29,15 +29,51 @@ int main(int argc, char*argv[])
 	GLuint grassTextureID = loadTexture("../Assets/Textures/grass.jpg");
 #endif
 
+	// GL_TEXTURE0 IS RESERVED FOR SHADOW MAPPING
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, grassTextureID);
 
 	//------------------------------------Shader Programs----------------------------------------//
 
 	// Compile and link shaders here ...
-	int shaderProgram = compileAndLinkShaders("Comp371Basic.vshader", "Comp371Basic.fshader");
+	int shaderProgram = compileAndLinkShaders("Comp371.vshader", "Comp371.fshader");
+	int shaderProgramBasic = compileAndLinkShaders("Comp371Basic.vshader", "Comp371Basic.fshader");
 	int shaderProgramTexture = compileAndLinkShaders("Comp371Texture.vshader", "Comp371Texture.fshader");
+	int shaderProgramShadow = compileAndLinkShaders("Comp371Shadow.vshader", "Comp371Shadow.fshader");
+	int shaderProgramLightSource = compileAndLinkShaders("Comp371LightSource.vshader", "Comp371LightSource.fshader");
 
+	//-----------------------------------------SHADOWS--------------------------------------//
+
+	// Create framebuffer object for rendering the depth map
+	GLuint depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+
+	// Create a 2D texture that we'll use as the framebuffer's depth buffer
+	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+	GLuint depthMap;
+	glGenTextures(1, &depthMap);
+	glActiveTexture(GL_TEXTURE0); // Texture2 for shadow rendering because Texture1 and texture2 is for ground and nose textures
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	setTexture(shaderProgram, "shadowMap", 0);
+	setTexture(shaderProgramTexture, "shadowMap", 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	// Attach the generated depth texture as the framebuffer's depth buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//--------------------------------------------------------------------------------------//
 
 	//----------------------------------------Camera------------------------------------------//
 
@@ -47,6 +83,10 @@ int main(int argc, char*argv[])
 	vec3 cameraUp(0.0f, 1.0f, 0.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 	vec3 cameraDirection = normalize(cameraPosition - cameraTarget);
+
+	// THE FOLLOWING IS IMPORTANT FOR THE LIGHTING
+	setVec3(shaderProgram, "viewPos", cameraPosition);
+	setVec3(shaderProgramTexture, "viewPos", cameraPosition);
 
 	// Other camera parameters
 	float cameraSpeed = 1.0f;
@@ -63,14 +103,12 @@ int main(int argc, char*argv[])
 	// Set projection matrix
 	mat4 projectionMatrix = glm::perspective(70.0f,            // field of view in degrees
 		800.0f / 600.0f,  // aspect ratio
-		0.01f, 100.0f);   // near and far (near > 0)
+		0.01f, 800.0f);   // near and far (near > 0)
 
-	glUseProgram(shaderProgram);
-	GLuint projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
-	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
-	glUseProgram(shaderProgramTexture);
-	projectionMatrixLocation = glGetUniformLocation(shaderProgramTexture, "projectionMatrix");
-	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
+
+	setMat4(shaderProgram, "projectionMatrix", projectionMatrix);
+	setMat4(shaderProgramTexture, "projectionMatrix", projectionMatrix);
+	setMat4(shaderProgramLightSource, "projectionMatrix", projectionMatrix);
 
 	//---------------------------------------ViewMatrix-------------------------------------------//
 
@@ -79,17 +117,15 @@ int main(int argc, char*argv[])
 		 cameraLookAt,  // center
 		cameraUp); // up
 
-	glUseProgram(shaderProgram);
-	GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-	glUseProgram(shaderProgramTexture);
-	viewMatrixLocation = glGetUniformLocation(shaderProgramTexture, "viewMatrix");
-	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+	setMat4(shaderProgram, "viewMatrix", viewMatrix);
+	setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
+	setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
 
 	//-----------------------------------------VAOs--------------------------------------------//
 
 	// Define and upload geometry to the GPU here ...
 	int vao = createVertexArrayObject();
+	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
 
 	//----------------------------------------------------------------------------------------//
@@ -101,12 +137,8 @@ int main(int argc, char*argv[])
 
 	//-----------------------------------------Settings?-----------------------------------------//
 
-	// Other OpenGL states to set once before the Game Loop
-	// Enable Backface culling
 	glEnable(GL_CULL_FACE);
-
-	glEnable(GL_DEPTH_TEST); // @TODO 1 - Enable Depth Test
-							 // ...
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 
 	//---------------------------------------Miscellaneous------------------------------------//
@@ -123,25 +155,65 @@ int main(int argc, char*argv[])
 		lastFrameTime += dt;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//----------------------------------------------------------------------------------------//
+		//-----------------------------------------SHADOWS--------------------------------------//
+
+		vec3 lightPos = vec3(25.0f, 300.0f, -200.0f);
+		mat4 lightProjectionMatrix = ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 400.0f);
+		mat4 lightViewMatrix = lookAt(lightPos, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+		mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
+		setMat4(shaderProgram, "lightSpaceMatrix", lightSpaceMatrix);
+		setMat4(shaderProgramTexture, "lightSpaceMatrix", lightSpaceMatrix);
+
+		glCullFace(GL_FRONT);
+
+		// 1. first render to depth map
+		setMat4(shaderProgramShadow, "lightSpaceMatrix", lightSpaceMatrix);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		// Draw ground
+		glBindVertexArray(vaoGround);
+		glUseProgram(shaderProgramShadow);
+
+		mat4 groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) *
+			scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f)); // 100 * 100 grid now
+		setMat4(shaderProgramShadow, "worldMatrix", groundWorldMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glCullFace(GL_BACK);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		//--------------------------------Now do actual rendering-------------------------------//
+
+		const unsigned int SCR_WIDTH = 1024, SCR_HEIGHT = 768;
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//Draw light source
+		glBindVertexArray(vaoCube);
+		glUseProgram(shaderProgramLightSource);
+		mat4 lightSourceMatrix = translate(mat4(1.0), lightPos) * scale(mat4(1.0), vec3(30.0f, 30.0f, 30.0f));
+		setMat4(shaderProgramLightSource, "worldMatrix", lightSourceMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// Draw ground
 		glBindVertexArray(vaoGround);
 		glUseProgram(shaderProgramTexture);
 
-		mat4 groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f));
-		GLuint worldMatrixLocation = glGetUniformLocation(shaderProgramTexture, "worldMatrix");
-		glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &groundWorldMatrix[0][0]);
+		groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * 
+			scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f)); // 100 * 100 grid now
+		setMat4(shaderProgramTexture, "worldMatrix", groundWorldMatrix);
 
 		// The following is to make the grass texture repeat so that it doesn't become blurry
-		worldMatrixLocation = glGetUniformLocation(shaderProgramTexture, "uvMultiplier");
-		glUniform1f(worldMatrixLocation, 12.0f);
-
+		setFloat(shaderProgramTexture, "uvMultiplier", 12.0f);
 		// Activate texture1 where the grass texture is located
 		glActiveTexture(GL_TEXTURE0 + 1);
 		GLuint textureLocation = glGetUniformLocation(shaderProgramTexture, "textureSampler");
 		glUniform1i(textureLocation, 1);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		setFloat(shaderProgramTexture, "uvMultiplier", 1.0f);
 
 		//----------------------------------------------------------------------------------------//
 
@@ -229,14 +301,15 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 		}
+		setVec3(shaderProgram, "viewPos", cameraPosition);
+		setVec3(shaderProgramTexture, "viewPos", cameraPosition);
+
 		mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
 
+		setMat4(shaderProgram, "viewMatrix", viewMatrix);
+		setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
+		setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
 		glUseProgram(shaderProgram);
-		GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-		glUseProgram(shaderProgramTexture);
-		viewMatrixLocation = glGetUniformLocation(shaderProgramTexture, "viewMatrix");
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
 
 	}
 
