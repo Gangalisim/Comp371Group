@@ -4,54 +4,42 @@
 // Created by Nicolas Bergeron on 20/06/2019.
 //
 
-#include <iostream>
-#include <list>
-
-#define GLEW_STATIC 1   // This allows linking with Static Library on Windows, without DLL
-#include <GL/glew.h>    // Include GLEW - OpenGL Extension Wrangler
-
-#include <GLFW/glfw3.h> // cross-platform interface for creating a graphical context,
-// initializing OpenGL and binding inputs
-
-#include <glm/glm.hpp>  // GLM is an optimized math library with syntax to similar to OpenGL Shading Language
-#include <glm/gtc/matrix_transform.hpp> // include this to create transformation matrices
-#include <glm/common.hpp>
-#include <minmax.h>
-
-
-
+#include "COMP371Helper.h"
 
 using namespace glm;
 using namespace std;
 
-
-
-
-const char* getVertexShaderSource();
-
-const char* getFragmentShaderSource();
-
-int compileAndLinkShaders();
-
 int createVertexArrayObject();
-
-bool initContext();
-
-GLFWwindow * window = NULL;
 
 int main(int argc, char*argv[])
 {
 	if (!initContext()) return -1;
 
+	// Disable mouse cursor
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// Black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(135.0f/255.0f, 206.0f/255.0f, 235.0f/255.0f, 1.0f);
+
+	//---------------------------------------Textures--------------------------------------------//
+	// Load Textures
+#if defined(PLATFORM_OSX)
+	GLuint grassTextureID = loadTexture("Textures/grass.jpg");
+#else
+	GLuint grassTextureID = loadTexture("../Assets/Textures/grass.jpg");
+#endif
+
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, grassTextureID);
+
+	//------------------------------------Shader Programs----------------------------------------//
 
 	// Compile and link shaders here ...
-	int shaderProgram = compileAndLinkShaders();
+	int shaderProgram = compileAndLinkShaders("Comp371Basic.vshader", "Comp371Basic.fshader");
+	int shaderProgramTexture = compileAndLinkShaders("Comp371Texture.vshader", "Comp371Texture.fshader");
 
-	// We can set the shader once, since we have only one
-	glUseProgram(shaderProgram);
 
+	//----------------------------------------Camera------------------------------------------//
 
 	// Camera parameters for view transform
 	vec3 cameraPosition(0.6f, 1.0f, 10.0f);
@@ -70,32 +58,48 @@ int main(int argc, char*argv[])
 									// Spinning cube at camera position
 	float spinningCubeAngle = 0.0f;
 
-	// Set projection matrix for shader, this won't change
+	//-------------------------------------ProjectionMatrix---------------------------------------//
+
+	// Set projection matrix
 	mat4 projectionMatrix = glm::perspective(70.0f,            // field of view in degrees
 		800.0f / 600.0f,  // aspect ratio
 		0.01f, 100.0f);   // near and far (near > 0)
 
+	glUseProgram(shaderProgram);
 	GLuint projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
 	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
+	glUseProgram(shaderProgramTexture);
+	projectionMatrixLocation = glGetUniformLocation(shaderProgramTexture, "projectionMatrix");
+	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
+
+	//---------------------------------------ViewMatrix-------------------------------------------//
 
 	// Set initial view matrix
 	mat4 viewMatrix = lookAt(cameraPosition,  // eye
 		 cameraLookAt,  // center
 		cameraUp); // up
 
+	glUseProgram(shaderProgram);
 	GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
 	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+	glUseProgram(shaderProgramTexture);
+	viewMatrixLocation = glGetUniformLocation(shaderProgramTexture, "viewMatrix");
+	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
 
-
+	//-----------------------------------------VAOs--------------------------------------------//
 
 	// Define and upload geometry to the GPU here ...
 	int vao = createVertexArrayObject();
+	int vaoGround = createVertexArrayObjectGround();
 
+	//----------------------------------------------------------------------------------------//
 	// For frame time
 	float lastFrameTime = glfwGetTime();
 	int lastMouseLeftState = GLFW_RELEASE;
 	double lastMousePosX, lastMousePosY;
 	glfwGetCursorPos(window, &lastMousePosX, &lastMousePosY);
+
+	//-----------------------------------------Settings?-----------------------------------------//
 
 	// Other OpenGL states to set once before the Game Loop
 	// Enable Backface culling
@@ -105,9 +109,11 @@ int main(int argc, char*argv[])
 							 // ...
 	glDepthMask(GL_TRUE);
 
+	//---------------------------------------Miscellaneous------------------------------------//
 
-	
+	// Put future variables here
 
+	//----------------------------------------------------------------------------------------//
 
 	// Entering Game Loop
 	while (!glfwWindowShouldClose(window))
@@ -115,47 +121,41 @@ int main(int argc, char*argv[])
 		// Frame time calculation
 		float dt = glfwGetTime() - lastFrameTime;
 		lastFrameTime += dt;
-
-		// Each frame, reset color of each pixel to glClearColor
-
-		// @TODO 1 - Clear Depth Buffer Bit as well
-		// ...
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		// Draw geometry
-		glBindVertexArray(vao);
-		//glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		//----------------------------------------------------------------------------------------//
 
 		// Draw ground
-		mat4 groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, -0.01f, 0.0f)) * scale(mat4(1.0f), vec3(1000.0f, 0.02f, 1000.0f));
-		GLuint worldMatrixLocation = glGetUniformLocation(shaderProgram, "worldMatrix");
+		glBindVertexArray(vaoGround);
+		glUseProgram(shaderProgramTexture);
+
+		mat4 groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f));
+		GLuint worldMatrixLocation = glGetUniformLocation(shaderProgramTexture, "worldMatrix");
 		glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &groundWorldMatrix[0][0]);
 
-		glDrawArrays(GL_TRIANGLES, 0, 36); // 36 vertices, starting at index 0
+		// The following is to make the grass texture repeat so that it doesn't become blurry
+		worldMatrixLocation = glGetUniformLocation(shaderProgramTexture, "uvMultiplier");
+		glUniform1f(worldMatrixLocation, 12.0f);
 
-										   // Draw pillars
-		
+		// Activate texture1 where the grass texture is located
+		glActiveTexture(GL_TEXTURE0 + 1);
+		GLuint textureLocation = glGetUniformLocation(shaderProgramTexture, "textureSampler");
+		glUniform1i(textureLocation, 1);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		// @TODO 3 - Update and draw projectiles
-		// ...
-		
+		//----------------------------------------------------------------------------------------//
 
+		//glUseProgram(shaderProgram);
+		//glBindVertexArray(vao);
+		//{
+		//	// In third person view, let's draw the spinning cube in world space, like any other models
+		//	mat4 spinningCubeWorldMatrix = translate(mat4(1.0f), cameraPosition) *
+		//		rotate(mat4(1.0f), radians(spinningCubeAngle), vec3(0.0f, 1.0f, 0.0f)) *
+		//		scale(mat4(1.0f), vec3(2.0f, 2.0f, 2.0f));
 
-		// Spinning cube at camera position
-		
-
-		// @TODO 7 - Draw in view space for first person camera
-
-		{
-			// In third person view, let's draw the spinning cube in world space, like any other models
-			mat4 spinningCubeWorldMatrix = translate(mat4(1.0f), cameraPosition) *
-				rotate(mat4(1.0f), radians(spinningCubeAngle), vec3(0.0f, 1.0f, 0.0f)) *
-				scale(mat4(1.0f), vec3(0.1f, 0.1f, 0.1f));
-
-			glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &spinningCubeWorldMatrix[0][0]);
-		}
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//	glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &spinningCubeWorldMatrix[0][0]);
+		//}
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 		glBindVertexArray(0);
@@ -164,27 +164,15 @@ int main(int argc, char*argv[])
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
-		// Handle inputs
+		//--------------------------------------Handle Inputs-------------------------------------//
+
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
-
-		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) // move camera down
-		{
-			cameraFirstPerson = true;
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) // move camera down
-		{
-			cameraFirstPerson = false;
-		}
-
 
 		// This was solution for Lab02 - Moving camera exercise
 		// We'll change this to be a first or third person camera
 		bool fastCam = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
 		float currentCameraSpeed = (fastCam) ? cameraFastSpeed : cameraSpeed;
-
-
 		
 		double mousePosX, mousePosY;
 		glfwGetCursorPos(window, &mousePosX, &mousePosY);
@@ -224,42 +212,31 @@ int main(int argc, char*argv[])
 		// adjust code below
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // move camera to the left
 		{
-			cameraPosition.x -= currentCameraSpeed * dt;
+			cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // move camera to the right
 		{
-			cameraPosition.x += currentCameraSpeed * dt;
+			cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // move camera up
 		{
-			cameraPosition.y -= currentCameraSpeed * dt;
+			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // move camera down
 		{
-			cameraPosition.y += currentCameraSpeed * dt;
+			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 		}
-
-		// TODO 6
-		// Set the view matrix for first and third person cameras
-		// - In first person, camera lookat is set like below
-		// - In third person, camera position is on a sphere looking towards center
 		mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
 
+		glUseProgram(shaderProgram);
 		GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
 		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-
-
-		// @TODO 2 - Shoot Projectiles
-		//
-		// shoot projectiles on mouse left click
-		// To detect onPress events, we need to check the last state and the current state to detect the state change
-		// Otherwise, you would shoot many projectiles on each mouse press
-		
-
-
+		glUseProgram(shaderProgramTexture);
+		viewMatrixLocation = glGetUniformLocation(shaderProgramTexture, "viewMatrix");
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
 
 	}
 
@@ -268,94 +245,6 @@ int main(int argc, char*argv[])
 	glfwTerminate();
 
 	return 0;
-}
-
-const char* getVertexShaderSource()
-{
-	// For now, you use a string for your shader code, in the assignment, shaders will be stored in .glsl files
-	return
-		"#version 330 core\n"
-		"layout (location = 0) in vec3 aPos;"
-		"layout (location = 1) in vec3 aColor;"
-		""
-		"uniform mat4 worldMatrix;"
-		"uniform mat4 viewMatrix = mat4(1.0);"  // default value for view matrix (identity)
-		"uniform mat4 projectionMatrix = mat4(1.0);"
-		""
-		"out vec3 vertexColor;"
-		"void main()"
-		"{"
-		"   vertexColor = aColor;"
-		"   mat4 modelViewProjection = projectionMatrix * viewMatrix * worldMatrix;"
-		"   gl_Position = modelViewProjection * vec4(aPos.x, aPos.y, aPos.z, 1.0);"
-		"}";
-}
-
-const char* getFragmentShaderSource()
-{
-	return
-		"#version 330 core\n"
-		"in vec3 vertexColor;"
-		"out vec4 FragColor;"
-		"void main()"
-		"{"
-		"   FragColor = vec4(vertexColor.r, vertexColor.g, vertexColor.b, 1.0f);"
-		"}";
-}
-
-int compileAndLinkShaders()
-{
-	// compile and link shader program
-	// return shader program id
-	// ------------------------------------
-
-	// vertex shader
-	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	const char* vertexShaderSource = getVertexShaderSource();
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	// check for shader compile errors
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	// fragment shader
-	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char* fragmentShaderSource = getFragmentShaderSource();
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	// check for shader compile errors
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	// link shaders
-	int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	// check for linking errors
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	return shaderProgram;
 }
 
 int createVertexArrayObject()
@@ -449,39 +338,3 @@ int createVertexArrayObject()
 	return vertexArrayObject;
 }
 
-bool initContext() {     // Initialize GLFW and OpenGL version
-	glfwInit();
-
-#if defined(PLATFORM_OSX)
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#else
-	// On windows, we set OpenGL version to 2.1, to support more hardware
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-#endif
-
-	// Create Window and rendering context using GLFW, resolution is 800x600
-	window = glfwCreateWindow(800, 600, "Comp371 - Lab 03", NULL, NULL);
-	if (window == NULL)
-	{
-		std::cerr << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return false;
-	}
-	glfwMakeContextCurrent(window);
-
-	// @TODO 3 - Disable mouse cursor
-	// ...
-
-	// Initialize GLEW
-	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) {
-		std::cerr << "Failed to create GLEW" << std::endl;
-		glfwTerminate();
-		return false;
-	}
-	return true;
-}
