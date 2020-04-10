@@ -23,7 +23,7 @@ void main()
 	mat4 modelViewProjection = projectionMatrix * viewMatrix * worldMatrix;
     gl_Position = modelViewProjection * vec4(aPos.x, aPos.y, aPos.z, 1.0);
     vertexColor = vec4(aColor.r, aColor.g, aColor.b, 1.0f);
-	Normal = aNormal;
+	Normal = mat3(transpose(inverse(worldMatrix))) * aNormal;
 	FragPos = vec3(worldMatrix * vec4(aPos, 1.0));
 	vec2 UV = vec2(aUV.x * uvMultiplier, aUV.y * uvMultiplier);
     vertexUV = UV;

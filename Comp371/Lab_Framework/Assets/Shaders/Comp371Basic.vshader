@@ -19,7 +19,7 @@ out vec4 fragment_position_light_space;
 void main()
 {
    vertexColor = vec4(aColor.r, aColor.g, aColor.b, 1.0f);
-   Normal = aNormal;
+   Normal = mat3(transpose(inverse(worldMatrix))) * aNormal;
    FragPos = vec3(worldMatrix * vec4(aPos, 1.0));
    mat4 modelViewProjection = projectionMatrix * viewMatrix * worldMatrix;
    gl_Position = modelViewProjection * vec4(aPos.x, aPos.y, aPos.z, 1.0);

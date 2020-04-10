@@ -39,6 +39,22 @@ int main(int argc, char*argv[])
 	int shaderProgramShadow = compileAndLinkShaders("Comp371Shadow.vshader", "Comp371Shadow.fshader");
 	int shaderProgramLightSource = compileAndLinkShaders("Comp371LightSource.vshader", "Comp371LightSource.fshader");
 
+	//-----------------------------------------VAOs--------------------------------------------//
+
+		//Setup models
+#if defined(PLATFORM_OSX)
+	string spherePath = "Models/UVSphereTriangle.obj";
+#else
+	string spherePath = "../Assets/Models/UVSphereTriangle.obj";
+#endif
+
+	int sphereVertices;
+	GLuint vaoSphereModel = setupModelEBO(spherePath, sphereVertices);
+
+	// Define and upload geometry to the GPU here ...
+	int vaoCube = createVertexArrayObjectCube();
+	int vaoGround = createVertexArrayObjectGround();
+
 	//-----------------------------------------SHADOWS--------------------------------------//
 
 	// Create framebuffer object for rendering the depth map
@@ -69,8 +85,6 @@ int main(int argc, char*argv[])
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//--------------------------------------------------------------------------------------//
 
 	//----------------------------------------Camera------------------------------------------//
 
@@ -118,12 +132,6 @@ int main(int argc, char*argv[])
 	setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
 
-	//-----------------------------------------VAOs--------------------------------------------//
-
-	// Define and upload geometry to the GPU here ...
-	int vaoCube = createVertexArrayObjectCube();
-	int vaoGround = createVertexArrayObjectGround();
-
 	//----------------------------------------------------------------------------------------//
 	// For frame time
 	float lastFrameTime = glfwGetTime();
@@ -153,8 +161,8 @@ int main(int argc, char*argv[])
 
 		//-----------------------------------------SHADOWS--------------------------------------//
 
-		vec3 lightPos = vec3(0.001f, 150.0f, -300.0f);
-		mat4 lightProjectionMatrix = ortho(-200.0f, 200.0f, -200.0f, 200.0f, 1.0f, 400.0f);
+		vec3 lightPos = vec3(0.001f, 200.0f, -150.0f);
+		mat4 lightProjectionMatrix = ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 400.0f);
 		mat4 lightViewMatrix = lookAt(lightPos, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 		mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
@@ -171,12 +179,12 @@ int main(int argc, char*argv[])
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		// Draw ground
+		//----------------------------------Draw ground shadow----------------------------------//
 		glBindVertexArray(vaoGround);
 		glUseProgram(shaderProgramShadow);
 
 		mat4 groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) *
-			scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f)); // 100 * 100 grid now
+			scale(mat4(1.0f), vec3(50.0f, 1.0f, 50.0f)); // 100 * 100 grid now
 		setMat4(shaderProgramShadow, "worldMatrix", groundWorldMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -190,18 +198,17 @@ int main(int argc, char*argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//----------------------------------Draw light source-----------------------------------//
-		glBindVertexArray(vaoCube);
-		glUseProgram(shaderProgramLightSource);
-		mat4 lightSourceMatrix = translate(mat4(1.0), lightPos) * scale(mat4(1.0), vec3(30.0f, 30.0f, 30.0f));
+		glBindVertexArray(vaoSphereModel);
+		mat4 lightSourceMatrix = translate(mat4(1.0), lightPos) * scale(mat4(1.0), vec3(10.0f, 10.0f, 10.0f));
 		setMat4(shaderProgramLightSource, "worldMatrix", lightSourceMatrix);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawElements(GL_TRIANGLES, sphereVertices, GL_UNSIGNED_INT, 0);
 
 		//----------------------------------Draw ground-----------------------------------------//
 		glBindVertexArray(vaoGround);
 		glUseProgram(shaderProgramTexture);
 
 		groundWorldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * 
-			scale(mat4(1.0f), vec3(50.0f, 0.0f, 50.0f)); // 100 * 100 grid now
+			scale(mat4(1.0f), vec3(50.0f, 1.0f, 50.0f)); // 100 * 100 grid now
 		setMat4(shaderProgramTexture, "worldMatrix", groundWorldMatrix);
 		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
 
@@ -216,7 +223,6 @@ int main(int argc, char*argv[])
 		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
 
 		//----------------------------------------------------------------------------------------//
-
 
 		glBindVertexArray(0);
 
@@ -247,7 +253,7 @@ int main(int argc, char*argv[])
 		cameraVerticalAngle   -= dy * cameraAngularSpeed * dt;
 
 		// Clamp vertical angle to [-85, 85] degrees
-		//cameraVerticalAngle = std::max(-85.0f, std::min(85.0f, cameraVerticalAngle));
+		cameraVerticalAngle = std::max(-85.0f, std::min(85.0f, cameraVerticalAngle));
 		if (cameraHorizontalAngle > 360)
 		{
 		cameraHorizontalAngle -= 360;
@@ -276,14 +282,16 @@ int main(int argc, char*argv[])
 			cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // move camera up
-		{
-			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // move camera down
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // move camera forward
 		{
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
+			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // move camera backward
+		{
+			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
+			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
 		}
 		setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 		setVec3(shaderProgramTexture, "viewPos", cameraPosition);

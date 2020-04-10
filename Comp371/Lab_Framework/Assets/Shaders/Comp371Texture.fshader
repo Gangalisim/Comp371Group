@@ -10,7 +10,7 @@ in vec4 fragment_position_light_space;
 
 uniform sampler2D textureSampler;
 
-uniform vec3 lightPos = vec3(0.001f, 150.0f, -300.0f);
+uniform vec3 lightPos;
 uniform float angleZ = 0.0;
 uniform vec3 viewPos = vec3(1.0f, 1.0f, 1.0f);
 uniform float shininess = 64.0;
@@ -32,7 +32,7 @@ float ShadowCalculation(vec4 fragment_position_light_space)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
-	float bias = 0.0001;
+	float bias = 0.003;
     float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
 	for(int x = -1; x <= 1; ++x)

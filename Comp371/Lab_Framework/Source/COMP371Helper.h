@@ -27,6 +27,7 @@ int compileAndLinkShaders(string vertexPath, string fragmentPath);
 int createVertexArrayObjectCube();
 int createVertexArrayObjectGround();
 GLuint loadTexture(const char* filename);
+GLuint setupModelEBO(string path, int& vertexCount);
 
 void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
 void setVec3(int shaderProgram, const GLchar* location, vec3 vector);
