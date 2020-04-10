@@ -22,6 +22,16 @@ using namespace std;
 
 extern GLFWwindow* window;
 
+struct Box {
+	Box(float _x, float _y, float _z, float _size)
+		: x(_x), y(_y), z(_z), size(_size) {}
+
+	float x;
+	float y;
+	float z;
+	float size;
+};
+
 bool initContext();
 int compileAndLinkShaders(string vertexPath, string fragmentPath);
 int createVertexArrayObjectCube();
@@ -33,3 +43,4 @@ void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
 void setVec3(int shaderProgram, const GLchar* location, vec3 vector);
 void setFloat(int shaderProgram, const GLchar* location, float value);
 void setTexture(int shaderProgram, const GLchar* location, int value);
+bool checkCollision(vec3 camera, Box b);

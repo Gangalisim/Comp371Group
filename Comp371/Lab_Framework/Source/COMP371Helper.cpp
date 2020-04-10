@@ -439,3 +439,24 @@ void setTexture(int shaderProgram, const GLchar* location, int value)
 	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
 	glUniform1i(matrixLocation, value);
 }
+
+bool checkCollision(vec3 camera, Box b)
+{
+	{
+		//check the X axis
+		if (abs(camera.x - b.x) < b.size)
+		{
+			//check the Y axis
+			if (abs(camera.y - b.y) < b.size)
+			{
+				//check the Z axis
+				if (abs(camera.z - b.z) < b.size)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+}
