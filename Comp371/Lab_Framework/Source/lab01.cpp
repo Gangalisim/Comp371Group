@@ -5,6 +5,8 @@
 //
 
 #include "COMP371Helper.h"
+#include "Model.h"
+#include <vector>
 
 using namespace glm;
 using namespace std;
@@ -44,14 +46,18 @@ int main(int argc, char*argv[])
 		//Setup models
 #if defined(PLATFORM_OSX)
 	string spherePath = "Models/UVSphereTriangle.obj";
+	string cubePath = "Models/cube.obj";
 #else
 	string spherePath = "../Assets/Models/UVSphereTriangle.obj";
+	string cubePath = "../Assets/Models/cube.obj";
 #endif
 
 	int sphereVertices;
 	GLuint vaoSphereModel = setupModelEBO(spherePath, sphereVertices);
 
-	// Define and upload geometry to the GPU here ...
+	int cubeVertices;
+	GLuint vaoCubeModel = setupModelEBO(cubePath, cubeVertices);
+
 	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
 
@@ -89,7 +95,7 @@ int main(int argc, char*argv[])
 	//----------------------------------------Camera------------------------------------------//
 
 	// Camera parameters for view transform
-	vec3 cameraPosition(0.6f, 1.0f, 1.0f);
+	vec3 cameraPosition(0.6f, 10.0f, 1.0f);
 	vec3 cameraLookAt(0.0f, 0.0f, -1.0f);
 	vec3 cameraUp(0.0f, 1.0f, 0.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
@@ -104,10 +110,6 @@ int main(int argc, char*argv[])
 	float cameraFastSpeed = 2 * cameraSpeed;
 	float cameraHorizontalAngle = 90.0f;
 	float cameraVerticalAngle = 0.0f;
-	bool  cameraFirstPerson = true; // press 1 or 2 to toggle this variable
-
-									// Spinning cube at camera position
-	float spinningCubeAngle = 0.0f;
 
 	//-------------------------------------ProjectionMatrix---------------------------------------//
 
@@ -132,7 +134,8 @@ int main(int argc, char*argv[])
 	setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
 
-	//----------------------------------------------------------------------------------------//
+	//-----------------------------------Initial Mouse Position---------------------------------//
+	
 	// For frame time
 	float lastFrameTime = glfwGetTime();
 	int lastMouseLeftState = GLFW_RELEASE;
@@ -148,6 +151,13 @@ int main(int argc, char*argv[])
 	//---------------------------------------Miscellaneous------------------------------------//
 
 	// Put future variables here
+
+	// This is probably how we'll need to initiate objects, in a vector of 'Model's
+	Cube cube1(vec3(0.0f, 0.0f, 0.0f), vec3(0.4f, 0.4f, 0.4f));
+	Cube cube2(vec3(5.0f, 0.0f, -20.0f), vec3(1.0f, 1.0f, 1.0f));
+	vector<Model> models;
+	/*models.push_back(cube1);
+	models.push_back(cube2);*/
 
 	//----------------------------------------------------------------------------------------//
 
@@ -171,6 +181,7 @@ int main(int argc, char*argv[])
 		setMat4(shaderProgramBasic, "lightSpaceMatrix", lightSpaceMatrix);
 		setMat4(shaderProgramTexture, "lightSpaceMatrix", lightSpaceMatrix);
 
+		// Cull the front side for shadow mapping, then cull backside again after
 		glCullFace(GL_FRONT);
 
 		// 1. first render to depth map
@@ -188,10 +199,11 @@ int main(int argc, char*argv[])
 		setMat4(shaderProgramShadow, "worldMatrix", groundWorldMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		// Cull backside again for the actual rendering
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		//--------------------------------Now do actual rendering-------------------------------//
+		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
 
 		const unsigned int SCR_WIDTH = 1024, SCR_HEIGHT = 768;
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -221,6 +233,18 @@ int main(int argc, char*argv[])
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		setFloat(shaderProgramTexture, "uvMultiplier", 1.0f);
 		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
+
+		//-----------------------------Draw Test Cubes for collision----------------------------//
+
+		/*glBindVertexArray(vaoCubeModel);
+		mat4 worldMatrix;
+
+		for (int i = 0; i < models.size(); i++) {
+			worldMatrix = translate(mat4(1.0f), models[i].translationVector) * 
+				scale(mat4(1.0f), models[i].scaleVector);
+			setMat4(shaderProgramBasic, "worldMatrix", worldMatrix);
+			glDrawElements(GL_TRIANGLES, cubeVertices, GL_UNSIGNED_INT, 0);
+		}*/
 
 		//----------------------------------------------------------------------------------------//
 
@@ -275,23 +299,51 @@ int main(int argc, char*argv[])
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // move camera to the left
 		{
 			cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
+
+			for (int i = 0; i < models.size(); i++) {
+				if (checkCollision(cameraPosition, models[i].box)) {
+					cameraPosition += cameraSideVector * currentCameraSpeed * dt;
+					break;
+				}
+			}
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // move camera to the right
 		{
 			cameraPosition += cameraSideVector * currentCameraSpeed * dt;
+
+			for (int i = 0; i < models.size(); i++) {
+				if (checkCollision(cameraPosition, models[i].box)) {
+					cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
+					break;
+				}
+			}
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // move camera forward
 		{
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
+
+			for (int i = 0; i < models.size(); i++) {
+				if (checkCollision(cameraPosition, models[i].box)) {
+					cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
+					break;
+				}
+			}
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // move camera backward
 		{
 			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
+
+			for (int i = 0; i < models.size(); i++) {
+				if (checkCollision(cameraPosition, models[i].box)) {
+					cameraPosition += cameraLookAt * currentCameraSpeed * dt;
+					break;
+				}
+			}
 		}
 		setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 		setVec3(shaderProgramTexture, "viewPos", cameraPosition);

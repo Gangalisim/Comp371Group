@@ -440,17 +440,17 @@ void setTexture(int shaderProgram, const GLchar* location, int value)
 	glUniform1i(matrixLocation, value);
 }
 
-bool checkCollision(vec3 camera, Box b)
+bool checkCollision(vec3 camera, BoundingBox b)
 {
 	{
 		//check the X axis
-		if (abs(camera.x - b.x) < b.size)
+		if (abs(camera.x - b.position.x) < (b.sizeX + 0.1f)) // + 0.1f so that it leaves a small gap
 		{
 			//check the Y axis
-			if (abs(camera.y - b.y) < b.size)
+			if (abs(camera.y - b.position.y) < (b.sizeY + 0.1f))
 			{
 				//check the Z axis
-				if (abs(camera.z - b.z) < b.size)
+				if (abs(camera.z - b.position.z) < (b.sizeZ + 0.1f))
 				{
 					return true;
 				}

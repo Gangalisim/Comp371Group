@@ -69,6 +69,9 @@
     <ClCompile Include="..\Source\COMP371Helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\COMP371Helper.h">
@@ -78,6 +81,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\OBJloaderV2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Model.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

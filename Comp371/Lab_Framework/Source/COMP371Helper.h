@@ -22,14 +22,14 @@ using namespace std;
 
 extern GLFWwindow* window;
 
-struct Box {
-	Box(float _x, float _y, float _z, float _size)
-		: x(_x), y(_y), z(_z), size(_size) {}
+struct BoundingBox {
+	BoundingBox(vec3 _position, float _x, float _y, float _z) : position(_position), sizeX(_x), sizeY(_y), sizeZ(_z) {}
+	BoundingBox() : position(vec3(0.0f, 0.0f, 0.0f)), sizeX(5.0f), sizeY(5.0f), sizeZ(5.0f) {};
 
-	float x;
-	float y;
-	float z;
-	float size;
+	vec3 position;
+	float sizeX; // The horizontal (x-axis) length from center to edge of box
+	float sizeY; // The vertical length from center to edge of box
+	float sizeZ; // The horizontal (z-axis) length from center to edge of box
 };
 
 bool initContext();
@@ -43,4 +43,5 @@ void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
 void setVec3(int shaderProgram, const GLchar* location, vec3 vector);
 void setFloat(int shaderProgram, const GLchar* location, float value);
 void setTexture(int shaderProgram, const GLchar* location, int value);
-bool checkCollision(vec3 camera, Box b);
+
+bool checkCollision(vec3 camera, BoundingBox b);
