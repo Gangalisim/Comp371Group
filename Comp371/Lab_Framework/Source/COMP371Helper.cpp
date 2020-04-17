@@ -472,7 +472,7 @@ double interpolate(double a, double b, double x)
 
 GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
 	GLfloat image[256][256][3];
-	PerlinNoise myNoise(2354583,1,.7);
+	PerlinNoise myNoise(seed, zoom, persistence);
 
 	float lightGreen[3]={50./255.,156./255.,50./255.};
 	float darkGreen[3]={34./255.,96./255.,34./255.};

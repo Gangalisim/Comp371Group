@@ -307,7 +307,6 @@ int main(int argc, char*argv[])
 		{
 			grassSeed = rand() % (3000000 - 2000000 + 1) + 2000000;
 			grassZoom = rand() % (12 - 1 + 1) + 1;
-			grassPersistence = rand() % (12 - 1 + 1) + 1;
 			grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 			glBindTexture(GL_TEXTURE_2D, grassTextureID);
 		}
