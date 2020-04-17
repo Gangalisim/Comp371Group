@@ -1,6 +1,9 @@
 #include "PerlinNoise.h"
 #include <math.h>
 
+
+// credits to Micah Caunter - The College of Wooster for the math behind noise generation
+
 PerlinNoise::PerlinNoise(int seed, double zoom, double persistence)
 {
 	this->seed = seed;
