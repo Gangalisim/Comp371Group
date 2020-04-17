@@ -7,7 +7,8 @@ in vec3 Normal;
 in vec3 FragPos;
 
 in vec4 fragment_position_light_space;
-
+in vec4 ioEyeSpacePosition;
+in float visibility;
 uniform sampler2D textureSampler;
 
 uniform vec3 lightPos;
@@ -17,9 +18,13 @@ uniform float shininess = 64.0;
 uniform float specularStrength = 0.5;
 uniform float ambientStrength = 0.1;
 
+
+uniform int fogEnabled;
 uniform sampler2D shadowMap;
 
 out vec4 FragColor;
+
+
 
 float ShadowCalculation(vec4 fragment_position_light_space)
 {
@@ -75,4 +80,8 @@ void main()
    
    
    FragColor = texture(textureSampler, vertexUV) * vec4(result, 1.0);
+   if (fogEnabled == 1)
+   {
+   FragColor = mix(vec4(0.345f, 0.505f, 0.552f, 1.0f), FragColor, visibility);
+   }
 }

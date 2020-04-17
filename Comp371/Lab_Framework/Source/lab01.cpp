@@ -159,6 +159,14 @@ int main(int argc, char*argv[])
 
 	// Put future variables here
 
+	//-----------------------------------------Fog ------------------------------------------//
+
+	int fogEnabled = 0; //int controlling fog switch
+
+	setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
+	setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+
+
 	// This is probably how we'll need to initiate objects, in a vector of 'Model's
 	Cube cube1(vec3(0.0f, 0.0f, 0.0f), vec3(0.4f, 0.4f, 0.4f));
 	Cube cube2(vec3(5.0f, 0.0f, -20.0f), vec3(1.0f, 1.0f, 1.0f));
@@ -360,6 +368,25 @@ int main(int argc, char*argv[])
 				}
 			}
 		}
+
+
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) //toggle Fog effect on and off
+		{
+			if (fogEnabled == 0) {
+				fogEnabled = 1;
+				setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
+				setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+			}
+			else
+			{
+				fogEnabled = 0;
+				setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
+				setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+			}
+		}
+
+
+
 		setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 		setVec3(shaderProgramTexture, "viewPos", cameraPosition);
 
