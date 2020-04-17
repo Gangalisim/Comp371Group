@@ -428,6 +428,13 @@ void setVec3(int shaderProgram, const GLchar* location, vec3 vector)
 	glUniform3f(matrixLocation, vector.x, vector.y, vector.z);
 }
 
+void setInt(int shaderProgram, const GLchar* location, int value)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
+	glUniform1i(matrixLocation, value);
+}
+
 void setFloat(int shaderProgram, const GLchar* location, float value)
 {
 	glUseProgram(shaderProgram);
@@ -441,6 +448,8 @@ void setTexture(int shaderProgram, const GLchar* location, int value)
 	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
 	glUniform1i(matrixLocation, value);
 }
+
+
 
 bool checkCollision(vec3 camera, BoundingBox b)
 {
@@ -508,18 +517,3 @@ GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return textureId;
 }
-
-//-------------------------------------------RAIN---------------------------------------------//
-
-int rainSize = 50;
-struct rainDrop {
-	float x = 400;
-	float y = 400;
-	float inc = 0.01;
-	float radius = 5;
-	float scale = 1.0;
-	float rotationAngle = 0;
-	float rotationInc = 1;
-};
-
-//--------------------------------------------------------------------------------------------//
