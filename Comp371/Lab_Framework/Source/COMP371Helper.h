@@ -44,5 +44,6 @@ void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
 void setVec3(int shaderProgram, const GLchar* location, vec3 vector);
 void setFloat(int shaderProgram, const GLchar* location, float value);
 void setTexture(int shaderProgram, const GLchar* location, int value);
+void setInt(int shaderProgram, const GLchar* location, int value);
 
 bool checkCollision(vec3 camera, BoundingBox b);

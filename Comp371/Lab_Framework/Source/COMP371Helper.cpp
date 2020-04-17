@@ -428,6 +428,13 @@ void setVec3(int shaderProgram, const GLchar* location, vec3 vector)
 	glUniform3f(matrixLocation, vector.x, vector.y, vector.z);
 }
 
+void setInt(int shaderProgram, const GLchar* location, int value)
+{
+	glUseProgram(shaderProgram);
+	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
+	glUniform1i(matrixLocation, value);
+}
+
 void setFloat(int shaderProgram, const GLchar* location, float value)
 {
 	glUseProgram(shaderProgram);
