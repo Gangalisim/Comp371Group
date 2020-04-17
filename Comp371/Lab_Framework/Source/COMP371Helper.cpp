@@ -508,3 +508,18 @@ GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return textureId;
 }
+
+//-------------------------------------------RAIN---------------------------------------------//
+
+int rainSize = 50;
+struct rainDrop {
+	float x = 400;
+	float y = 400;
+	float inc = 0.01;
+	float radius = 5;
+	float scale = 1.0;
+	float rotationAngle = 0;
+	float rotationInc = 1;
+};
+
+//--------------------------------------------------------------------------------------------//
