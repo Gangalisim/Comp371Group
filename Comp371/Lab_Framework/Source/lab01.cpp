@@ -24,11 +24,18 @@ int main(int argc, char*argv[])
 	//---------------------------------------Textures--------------------------------------------//
 	// Load Textures
 #if defined(PLATFORM_OSX)
-	GLuint grassTextureID = loadTexture("Textures/grass.jpg");
+	int grassSeed = 2354583;
+	int grassZoom = 1;
+	double grassPersistence = 0.7;
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 #else
-	GLuint grassTextureID = loadTexture("../Assets/Textures/grass.jpg");
+	int grassSeed = 2354583;
+	int grassZoom = 1;
+	double grassPersistence = 0.7;
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 #endif
 
+	
 	// GL_TEXTURE0 IS RESERVED FOR SHADOW MAPPING
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, grassTextureID);
@@ -295,6 +302,15 @@ int main(int argc, char*argv[])
 
 		glm::normalize(cameraSideVector);
 		
+
+		if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) // regenerate grass
+		{
+			grassSeed = rand() % (3000000 - 2000000 + 1) + 2000000;
+			grassZoom = rand() % (12 - 1 + 1) + 1;
+			grassPersistence = rand() % (12 - 1 + 1) + 1;
+			grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+			glBindTexture(GL_TEXTURE_2D, grassTextureID);
+		}
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // move camera to the left
 		{

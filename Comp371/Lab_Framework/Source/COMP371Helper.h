@@ -37,6 +37,7 @@ int compileAndLinkShaders(string vertexPath, string fragmentPath);
 int createVertexArrayObjectCube();
 int createVertexArrayObjectGround();
 GLuint loadTexture(const char* filename);
+GLuint makeNoiseTexture(int seed, int zoom, double persistence);
 GLuint setupModelEBO(string path, int& vertexCount);
 
 void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);

@@ -3,6 +3,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "OBJloaderV2.h"
+#include "PerlinNoise.h"
+#include <algorithm>
 
 GLFWwindow* window = NULL;
 
@@ -459,4 +461,50 @@ bool checkCollision(vec3 camera, BoundingBox b)
 
 		return false;
 	}
+}
+
+double interpolate(double a, double b, double x)
+{
+	double f = 6 * pow(x, 5) - 15 * pow(x, 4) + 10 * pow(x, 3);
+
+	return a * (1.0 - f) + b * f;
+}
+
+GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
+	GLfloat image[256][256][3];
+	PerlinNoise myNoise(2354583,1,.7);
+
+	float lightGreen[3]={50./255.,156./255.,50./255.};
+	float darkGreen[3]={34./255.,96./255.,34./255.};
+
+	double c;
+	
+	for(int i=0; i<256; i++)
+	{
+		for(int j=0; j<256; j++)
+		{
+			c = (1.0 + myNoise.perlinNoise2D(8, i, j)) / 2.0;
+			image[i][j][0] = (GLfloat)interpolate(lightGreen[0], darkGreen[0], c);
+			image[i][j][1] = (GLfloat)interpolate(lightGreen[1], darkGreen[1], c);
+			image[i][j][2] = (GLfloat)interpolate(lightGreen[2], darkGreen[2], c);
+		}
+	}
+
+	GLuint textureId = 0;
+	glGenTextures(1, &textureId);
+	assert(textureId != 0);
+
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, textureId);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D,0,3,256,256,0,GL_RGB,GL_FLOAT,image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return textureId;
 }
