@@ -449,12 +449,7 @@ void setTexture(int shaderProgram, const GLchar* location, int value)
 	glUniform1i(matrixLocation, value);
 }
 
-void setInt(int shaderProgram, const GLchar* location, int value)
-{
-	glUseProgram(shaderProgram);
-	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
-	glUniform1i(matrixLocation, value);
-}
+
 
 bool checkCollision(vec3 camera, BoundingBox b)
 {
