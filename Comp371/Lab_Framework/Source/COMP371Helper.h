@@ -36,6 +36,7 @@ bool initContext();
 int compileAndLinkShaders(string vertexPath, string fragmentPath);
 int createVertexArrayObjectCube();
 int createVertexArrayObjectGround();
+int createVertexArrayObjectParticles();
 GLuint loadTexture(const char* filename);
 GLuint makeNoiseTexture(int seed, int zoom, double persistence);
 GLuint setupModelEBO(string path, int& vertexCount);

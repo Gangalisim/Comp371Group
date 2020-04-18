@@ -313,6 +313,68 @@ int createVertexArrayObjectGround() {
 	return vertexArrayObject;
 }
 
+int createVertexArrayObjectParticles()
+{
+
+	VertexTexture vertexArray[] = {
+		// position,                               uv						normal
+		VertexTexture(vec3(-0.2f, 0.2f, 0.0f), vec2(0.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(-0.2f, -0.2f, 0.0f), vec2(0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(0.2f, 0.2f, 0.0f), vec2(1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)),
+
+		VertexTexture(vec3(0.2f, 0.2f, 0.0f), vec2(1.0f, 1.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(-0.2f, -0.2f, 0.0f), vec2(0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)),
+		VertexTexture(vec3(0.2f, -0.2f, 0.0f), vec2(1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f))
+	};
+
+	// Create a vertex array
+	GLuint vertexArrayObject;
+	glGenVertexArrays(1, &vertexArrayObject);
+	glBindVertexArray(vertexArrayObject);
+
+	// Upload Vertex Buffer to the GPU, keep a reference to it (vertexBufferObject)
+	GLuint vertexBufferObject;
+	glGenBuffers(1, &vertexBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_STATIC_DRAW);
+
+	// 1st attribute buffer : vertex Positions
+	glVertexAttribPointer(0,              // attribute. No particular reason for 0, but must match the layout in the shader.
+		3,              // size
+		GL_FLOAT,       // type
+		GL_FALSE,       // normalized?
+		sizeof(VertexTexture), // stride
+		(void*)0        // array buffer offset
+	);
+	glEnableVertexAttribArray(0);
+
+	// 2nd attribute buffer : vertex uv
+	glVertexAttribPointer(1,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(VertexTexture),
+		(void*)sizeof(vec3)    // Uv is Offseted by vec3 (see class VertexTexture)
+	);
+	glEnableVertexAttribArray(1);
+
+
+	// 3rd attribute buffer : vertex normal
+	glVertexAttribPointer(2,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeof(VertexTexture),
+		(void*)((sizeof(vec3)) + (sizeof(vec2))) // Normal is Offseted by 1 vec3  and 1 vec2(see class VertexTexture)
+	);
+	glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBindVertexArray(0);
+
+	return vertexArrayObject;
+}
+
 GLuint loadTexture(const char* filename)
 {
 	// Step1 Create and bind textures
@@ -448,8 +510,6 @@ void setTexture(int shaderProgram, const GLchar* location, int value)
 	matrixLocation = glGetUniformLocation(shaderProgram, location);// Here it's a vector location rather
 	glUniform1i(matrixLocation, value);
 }
-
-
 
 bool checkCollision(vec3 camera, BoundingBox b)
 {

@@ -119,12 +119,14 @@
     <ClCompile Include="..\Source\COMP371Helper.cpp" />
     <ClCompile Include="..\Source\lab01.cpp" />
     <ClCompile Include="..\Source\Model.cpp" />
+    <ClCompile Include="..\Source\Particles.cpp" />
     <ClCompile Include="..\Source\PerlinNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\COMP371Helper.h" />
     <ClInclude Include="..\Source\Model.h" />
     <ClInclude Include="..\Source\OBJloaderV2.h" />
+    <ClInclude Include="..\Source\Particles.h" />
     <ClInclude Include="..\Source\PerlinNoise.h" />
     <ClInclude Include="..\Source\stb_image.h" />
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "COMP371Helper.h"
 #include "Model.h"
 #include <vector>
+#include "Particles.h"
 
 using namespace glm;
 using namespace std;
@@ -14,6 +15,8 @@ using namespace std;
 int main(int argc, char*argv[])
 {
 	if (!initContext()) return -1;
+
+	srand((unsigned)time(0));
 
 	// Disable mouse cursor
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -28,17 +31,21 @@ int main(int argc, char*argv[])
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+	GLuint snowflakeTextureID = loadTexture("Textures/grass.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 #endif
 
 	
 	// GL_TEXTURE0 IS RESERVED FOR SHADOW MAPPING
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, grassTextureID);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, snowflakeTextureID);
 
 	//------------------------------------Shader Programs----------------------------------------//
 
@@ -47,6 +54,7 @@ int main(int argc, char*argv[])
 	int shaderProgramTexture = compileAndLinkShaders("Comp371Texture.vshader", "Comp371Texture.fshader");
 	int shaderProgramShadow = compileAndLinkShaders("Comp371Shadow.vshader", "Comp371Shadow.fshader");
 	int shaderProgramLightSource = compileAndLinkShaders("Comp371LightSource.vshader", "Comp371LightSource.fshader");
+	int shaderProgramParticles = compileAndLinkShaders("Comp371TextureParticles.vshader", "Comp371TextureParticles.fshader");
 
 	//-----------------------------------------VAOs--------------------------------------------//
 
@@ -67,6 +75,7 @@ int main(int argc, char*argv[])
 
 	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
+	int vaoSnow = createVertexArrayObjectParticles();
 
 	//-----------------------------------------SHADOWS--------------------------------------//
 
@@ -129,6 +138,7 @@ int main(int argc, char*argv[])
 	setMat4(shaderProgramBasic, "projectionMatrix", projectionMatrix);
 	setMat4(shaderProgramTexture, "projectionMatrix", projectionMatrix);
 	setMat4(shaderProgramLightSource, "projectionMatrix", projectionMatrix);
+	setMat4(shaderProgramParticles, "projectionMatrix", projectionMatrix);
 
 	//---------------------------------------ViewMatrix-------------------------------------------//
 
@@ -140,6 +150,7 @@ int main(int argc, char*argv[])
 	setMat4(shaderProgramBasic, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 	setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
+	setMat4(shaderProgramParticles, "viewMatrix", viewMatrix);
 
 	//-----------------------------------Initial Mouse Position---------------------------------//
 	
@@ -155,6 +166,10 @@ int main(int argc, char*argv[])
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 
+	// The following two lines makes the snow particles look better
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	//---------------------------------------Miscellaneous------------------------------------//
 
 	// Put future variables here
@@ -165,6 +180,7 @@ int main(int argc, char*argv[])
 
 	setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
 	setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+	setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 
 
 	// This is probably how we'll need to initiate objects, in a vector of 'Model's
@@ -173,6 +189,11 @@ int main(int argc, char*argv[])
 	vector<Model> models;
 	/*models.push_back(cube1);
 	models.push_back(cube2);*/
+
+	vector<Particle> snowParticles;
+	for (int i = 0; i < 1000; i++) {// create 1000 snow particles
+		snowParticles.push_back(Particle());
+	}
 
 	//----------------------------------------------------------------------------------------//
 
@@ -260,6 +281,20 @@ int main(int argc, char*argv[])
 			setMat4(shaderProgramBasic, "worldMatrix", worldMatrix);
 			glDrawElements(GL_TRIANGLES, cubeVertices, GL_UNSIGNED_INT, 0);
 		}*/
+
+		mat4 worldMatrix;
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindVertexArray(vaoSnow);
+		setTexture(shaderProgramParticles, "textureSampler", 2);
+		glDisable(GL_CULL_FACE);
+		for (int i = 0; i < snowParticles.size(); i++) {
+			snowParticles[i].update(dt, cameraPosition + cameraLookAt);
+			worldMatrix = translate(mat4(1.0f), snowParticles[i].position) *
+				rotate(mat4(1.0f), radians(snowParticles[i].billboardRotationAngle), snowParticles[i].billboardRotationAxis);
+			setMat4(shaderProgramParticles, "worldMatrix", worldMatrix);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		glEnable(GL_CULL_FACE);
 
 		//----------------------------------------------------------------------------------------//
 
@@ -376,12 +411,14 @@ int main(int argc, char*argv[])
 				fogEnabled = 1;
 				setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
 				setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+				setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 			}
 			else
 			{
 				fogEnabled = 0;
 				setInt(shaderProgramBasic, "fogEnabled", fogEnabled);
 				setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
+				setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 			}
 		}
 
@@ -395,6 +432,7 @@ int main(int argc, char*argv[])
 		setMat4(shaderProgramBasic, "viewMatrix", viewMatrix);
 		setMat4(shaderProgramTexture, "viewMatrix", viewMatrix);
 		setMat4(shaderProgramLightSource, "viewMatrix", viewMatrix);
+		setMat4(shaderProgramParticles, "viewMatrix", viewMatrix);
 		glUseProgram(shaderProgramBasic);
 
 	}
