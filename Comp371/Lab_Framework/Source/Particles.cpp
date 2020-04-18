@@ -9,8 +9,6 @@ Particle::Particle()
 	x -= 50; // Make its range from -50 to 50
 	z = (rand() % 101);
 	z -= 50;
-	/*x = 2;
-	z = -2;*/
 	y = (rand() % 26); // Generate the initial height from 0 to 25
 
 	position = initialPosition = vec3(x, y, z);

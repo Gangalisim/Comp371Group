@@ -287,8 +287,9 @@ int main(int argc, char*argv[])
 		}*/
 
 		//---------------------------------Draw Snow Particles----------------------------------//
-		
+		// Alternatively, we could use GL_ONE_MINUS_CONSTANT_COLOR instead of GL_DST_ALPHA
 		if (snowEnabled) {
+			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 			glActiveTexture(GL_TEXTURE0 + 2);
 			glBindTexture(GL_TEXTURE_2D, snowflakeTextureID);
 			glBindVertexArray(vaoSnow);
@@ -300,6 +301,7 @@ int main(int argc, char*argv[])
 				setMat4(shaderProgramParticles, "worldMatrix", worldMatrix);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 			}
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		//----------------------------------------------------------------------------------------//
