@@ -31,7 +31,7 @@ int main(int argc, char*argv[])
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
-	GLuint snowflakeTextureID = loadTexture("Textures/grass.jpg");
+	GLuint snowflakeTextureID = loadTexture("Textures/particle.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
