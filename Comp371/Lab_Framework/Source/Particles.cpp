@@ -13,10 +13,13 @@ Particle::Particle()
 	z = -2;*/
 	y = (rand() % 26); // Generate the initial height from 0 to 25
 
-	position = vec3(x, y, z);
+	position = initialPosition = vec3(x, y, z);
 	velocity = (rand() % 2) + 1; // Three sets of speed -> 1, 2, or 3
 	billboardRotationAxis = vec3(0, 1, 0);
 	billboardRotationAngle = 0.0f;
+	directionAge = 0.0f;
+	xDirection = (rand() % 2);
+	zDirection = (rand() % 2);
 }
 
 bool Particle::expired()
@@ -28,8 +31,19 @@ void Particle::update(float dt, vec3 cameraPosition)
 {
 	this->position.y -= dt * velocity;
 	if (this->expired()) {
-		this->position.y = 25.0f;
+		this->position = vec3(initialPosition.x, 25.0f, initialPosition.z);
 	}
+
+	//----------------------------------------------------//
+
+	this->position.x = xDirection ? this->position.x + dt : this->position.x - dt;
+	this->position.z = zDirection ? this->position.z + dt : this->position.z - dt;
+	if (directionAge >= DIR_LIFETIME) {
+		xDirection = 1 - xDirection;
+		zDirection = 1 - zDirection;
+	}
+
+	//------------------------------------------------------//
 
 	cameraPosition = normalize(cameraPosition - this->position);
 	vec3 cameraLookAt(-cameraPosition);
