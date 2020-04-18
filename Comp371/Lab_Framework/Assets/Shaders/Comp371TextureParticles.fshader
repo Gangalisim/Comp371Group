@@ -17,7 +17,7 @@ void main()
    vec3 result = vec3(vertexColor);
    
    
-   FragColor = texture(textureSampler, vertexUV) * vec4(result, 1.0);
+   FragColor = vec4(result, 1.0);
    if (fogEnabled == 1)
    {
    FragColor = mix(vec4(0.345f, 0.505f, 0.552f, 1.0f), FragColor, visibility);

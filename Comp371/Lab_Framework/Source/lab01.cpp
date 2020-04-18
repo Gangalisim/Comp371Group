@@ -292,14 +292,14 @@ int main(int argc, char*argv[])
 			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 			glActiveTexture(GL_TEXTURE0 + 2);
 			glBindTexture(GL_TEXTURE_2D, snowflakeTextureID);
-			glBindVertexArray(vaoSnow);
+			glBindVertexArray(vaoSphereModel);
 			setTexture(shaderProgramParticles, "textureSampler", 2);
 			for (int i = 0; i < snowParticles.size(); i++) {
 				snowParticles[i].update(dt, cameraPosition);
 				worldMatrix = translate(mat4(1.0f), snowParticles[i].position) *
-					rotate(mat4(1.0f), radians(snowParticles[i].billboardRotationAngle), snowParticles[i].billboardRotationAxis);
+					scale(mat4(1.0f), vec3(0.08f, 0.08f, 0.08f));
 				setMat4(shaderProgramParticles, "worldMatrix", worldMatrix);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
+				glDrawElements(GL_TRIANGLES, sphereVertices, GL_UNSIGNED_INT, 0);
 			}
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
