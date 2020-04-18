@@ -174,6 +174,9 @@ int main(int argc, char*argv[])
 
 	// Put future variables here
 
+	bool snowEnabled = true; // Used for toggling snow on/off
+	bool snowPressed = false;// Goes with above /\
+
 	//-----------------------------------------Fog ------------------------------------------//
 
 	int fogEnabled = 0; //int controlling fog switch
@@ -227,6 +230,7 @@ int main(int argc, char*argv[])
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		//----------------------------------Draw ground shadow----------------------------------//
+		mat4 worldMatrix;
 		glBindVertexArray(vaoGround);
 		glUseProgram(shaderProgramShadow);
 
@@ -235,11 +239,11 @@ int main(int argc, char*argv[])
 		setMat4(shaderProgramShadow, "worldMatrix", groundWorldMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
+
 		// Cull backside again for the actual rendering
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
 
 		const unsigned int SCR_WIDTH = 1024, SCR_HEIGHT = 768;
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -282,19 +286,21 @@ int main(int argc, char*argv[])
 			glDrawElements(GL_TRIANGLES, cubeVertices, GL_UNSIGNED_INT, 0);
 		}*/
 
-		mat4 worldMatrix;
-		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindVertexArray(vaoSnow);
-		setTexture(shaderProgramParticles, "textureSampler", 2);
-		glDisable(GL_CULL_FACE);
-		for (int i = 0; i < snowParticles.size(); i++) {
-			snowParticles[i].update(dt, cameraPosition + cameraLookAt);
-			worldMatrix = translate(mat4(1.0f), snowParticles[i].position) *
-				rotate(mat4(1.0f), radians(snowParticles[i].billboardRotationAngle), snowParticles[i].billboardRotationAxis);
-			setMat4(shaderProgramParticles, "worldMatrix", worldMatrix);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+		//---------------------------------Draw Snow Particles----------------------------------//
+		
+		if (snowEnabled) {
+			glActiveTexture(GL_TEXTURE0 + 2);
+			glBindTexture(GL_TEXTURE_2D, snowflakeTextureID);
+			glBindVertexArray(vaoSnow);
+			setTexture(shaderProgramParticles, "textureSampler", 2);
+			for (int i = 0; i < snowParticles.size(); i++) {
+				snowParticles[i].update(dt, cameraPosition);
+				worldMatrix = translate(mat4(1.0f), snowParticles[i].position) *
+					rotate(mat4(1.0f), radians(snowParticles[i].billboardRotationAngle), snowParticles[i].billboardRotationAxis);
+				setMat4(shaderProgramParticles, "worldMatrix", worldMatrix);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+			}
 		}
-		glEnable(GL_CULL_FACE);
 
 		//----------------------------------------------------------------------------------------//
 
@@ -351,6 +357,7 @@ int main(int argc, char*argv[])
 			grassSeed = rand() % (3000000 - 2000000 + 1) + 2000000;
 			grassZoom = rand() % (12 - 1 + 1) + 1;
 			grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+			glActiveTexture(GL_TEXTURE0 + 1);
 			glBindTexture(GL_TEXTURE_2D, grassTextureID);
 		}
 
@@ -420,6 +427,17 @@ int main(int argc, char*argv[])
 				setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
 				setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 			}
+		}
+
+		// Toggle snow on/off
+		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+			if (!snowPressed) {
+				snowPressed = true;
+				snowEnabled = !snowEnabled;
+			}
+		}
+		else {
+			snowPressed = false;
 		}
 
 

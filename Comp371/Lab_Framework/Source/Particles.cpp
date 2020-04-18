@@ -24,15 +24,15 @@ bool Particle::expired()
 	return (position.y <= 0); // If the particle has hit the ground
 }
 
-void Particle::update(float dt, vec3 currentLookAt)
+void Particle::update(float dt, vec3 cameraPosition)
 {
-	position.y -= dt * velocity;
+	this->position.y -= dt * velocity;
 	if (this->expired()) {
 		this->position.y = 25.0f;
 	}
 
-	currentLookAt = normalize(currentLookAt);
-	vec3 cameraLookAt(-currentLookAt);
+	cameraPosition = normalize(cameraPosition - this->position);
+	vec3 cameraLookAt(-cameraPosition);
 	cameraLookAt.y = 0; //project onto xz plane
 	cameraLookAt.x *= -1;
 	cameraLookAt = normalize(cameraLookAt);
