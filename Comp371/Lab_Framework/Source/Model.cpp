@@ -37,3 +37,20 @@ Tree::Tree(vec3 translation, vec3 scale)
 	box = BoundingBox(vec3(pos.x + translation.x, pos.y + translation.y, pos.z + translation.z),
 		0.8139465f * scale.x, 10.140205f * scale.y, 0.7113755f * scale.z);
 }
+
+Wolf::Wolf()
+{
+	translationVector = vec3(0.0f, 3.5f, 0.0f);
+	scaleVector = vec3(1.0f, 1.0f, 1.0f);
+	vec3 pos(0.0f, -0.5744805f, 0.0039735f);
+	box = BoundingBox(pos, 1.082057f, 2.9391915f, 4.0801215f);
+}
+
+Wolf::Wolf(vec3 translation, vec3 scale)
+{
+	translationVector = translation;
+	scaleVector = scale;
+	vec3 pos(0.0f, -0.5744805f, 0.0039735f);
+	box = BoundingBox(vec3(pos.x + translation.x, pos.y + translation.y, pos.z + translation.z),
+		1.082057f * scale.x, 2.9391915f * scale.y, 4.0801215f * scale.z);
+}

@@ -1,12 +1,1 @@
-﻿  lab01.cpp
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(177,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(233,37): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(251,12): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(367,22): warning C4018: '<': signed/unsigned mismatch
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(404,56): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(405,56): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(468,22): warning C4018: '<': signed/unsigned mismatch
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(480,22): warning C4018: '<': signed/unsigned mismatch
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(493,22): warning C4018: '<': signed/unsigned mismatch
-D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\Source\lab01.cpp(506,22): warning C4018: '<': signed/unsigned mismatch
-  Labs.vcxproj -> D:\Comp371\GroupAssignment\Comp371Group\Comp371\Lab_Framework\VS2017\/../Bin/Labs-Debug.exe
+﻿

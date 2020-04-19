@@ -27,3 +27,12 @@ public:
 	Tree(vec3 translation, vec3 scaleVector);
 
 };
+
+class Wolf : public Model
+{
+public:
+	// Class tree will need to be modified based on the .obj file that we choose
+	Wolf();
+	Wolf(vec3 translation, vec3 scaleVector);
+
+};

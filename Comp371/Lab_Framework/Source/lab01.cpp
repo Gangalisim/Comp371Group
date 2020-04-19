@@ -33,6 +33,7 @@ int main(int argc, char*argv[])
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
+	GLuint wolfTextureID = loadTexture("Textures/marble.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
@@ -40,6 +41,7 @@ int main(int argc, char*argv[])
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
+	GLuint marbleTextureID = loadTexture("../Assets/Textures/marble.jpg");
 #endif
 
 	
@@ -51,6 +53,8 @@ int main(int argc, char*argv[])
 	// GL_TEXTURE0 + 3 was the old tree texture that was removed
 	glActiveTexture(GL_TEXTURE0 + 4);
 	glBindTexture(GL_TEXTURE_2D, trunkTextureID);
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindTexture(GL_TEXTURE_2D, marbleTextureID);
 
 	//------------------------------------Shader Programs----------------------------------------//
 
@@ -69,11 +73,13 @@ int main(int argc, char*argv[])
 	string cubePath = "Models/cube.obj";
 	string trunkPath = "Models/trunk.obj";
 	string leavesPath = "Models/leaves.obj";
+	string wolfPath = "Models/wolf.obj";
 #else
 	string spherePath = "../Assets/Models/UVSphereTriangle.obj";
 	string cubePath = "../Assets/Models/cube.obj";
 	string trunkPath = "../Assets/Models/trunk.obj";
 	string leavesPath = "../Assets/Models/leaves.obj";
+	string wolfPath = "../Assets/Models/wolf.obj";
 #endif
 	//light Variables
 	vec3 lightPos = vec3(0.001f, 200.0f, -150.0f);
@@ -96,6 +102,9 @@ int main(int argc, char*argv[])
 
 	int leavesVertices;
 	GLuint vaoLeavesModel = setupModelEBO(leavesPath, leavesVertices);
+
+	int wolfVertices;
+	GLuint vaoWolfModel = setupModelEBO(wolfPath, wolfVertices);
 
 	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
@@ -202,7 +211,7 @@ int main(int argc, char*argv[])
 	bool snowPressed = false;// Goes with above /\
 
 	ISoundEngine* SoundEngine = createIrrKlangDevice();
-	SoundEngine->play2D("../Assets/Audio/Drowning Pool - Bodies.mp3", GL_TRUE);
+	SoundEngine->play2D("../Assets/Audio/piano.mp3", GL_TRUE);
 
 	//-----------------------------------------Fog ------------------------------------------//
 
@@ -250,6 +259,11 @@ int main(int argc, char*argv[])
 		// Insert the tree into the vector of its quadrant
 		models[getCurrentQuadrant(vec3(x, 0.0f, z))].push_back(tree);
 	}
+
+	//--------------------------------------Create wolf-----------------------------------------//
+
+	Wolf wolf(vec3(20.0f, 3.5f, -20.0f), vec3(1.0f, 1.0f, 1.0f));
+	models[0].push_back(wolf);
 
 	//--------------------------------------Create snow particles-------------------------------//
 
@@ -316,6 +330,13 @@ int main(int argc, char*argv[])
 			}
 		}
 
+		//----------------------------------Draw wolf shadow----------------------------------//
+
+		setMat4(shaderProgramShadow, "worldMatrix", translate(mat4(1.0f), wolf.translationVector)*
+			scale(mat4(1.0f), wolf.scaleVector));
+		glBindVertexArray(vaoWolfModel);
+		glDrawElements(GL_TRIANGLES, wolfVertices, GL_UNSIGNED_INT, 0);
+
 		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
 
 		// Cull backside again for the actual rendering
@@ -354,7 +375,11 @@ int main(int argc, char*argv[])
 		//-----------------------------------Draw Trees---------------------------------------//
 
 		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < models[i].size(); j++) {
+			int size = models[i].size();
+			if (i == 0) {
+				size--;
+			}
+			for (int j = 0; j < size; j++) {
 				worldMatrix = translate(mat4(1.0f), models[i][j].translationVector) *
 					scale(mat4(1.0f), models[i][j].scaleVector);
 				setMat4(shaderProgramTexture, "worldMatrix", worldMatrix);
@@ -393,6 +418,16 @@ int main(int argc, char*argv[])
 			}
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
+
+		//---------------------------------Draw Wolf--------------------------------------------//
+
+		glActiveTexture(GL_TEXTURE0 + 5);
+		glBindTexture(GL_TEXTURE_2D, marbleTextureID);
+		setTexture(shaderProgramTexture, "textureSampler", 5);
+		setMat4(shaderProgramTexture, "worldMatrix", translate(mat4(1.0f), wolf.translationVector) * 
+		scale(mat4(1.0f), wolf.scaleVector));
+		glBindVertexArray(vaoWolfModel);
+		glDrawElements(GL_TRIANGLES, wolfVertices, GL_UNSIGNED_INT, 0);
 
 		//----------------------------------------------------------------------------------------//
 
