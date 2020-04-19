@@ -28,7 +28,6 @@ int main(int argc, char*argv[])
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
-	GLuint leavesTextureID = loadTexture("Textures/leaves.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
@@ -36,7 +35,6 @@ int main(int argc, char*argv[])
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
-	GLuint leavesTextureID = loadTexture("../Assets/Textures/leaves.jpg");
 #endif
 
 	
@@ -48,8 +46,6 @@ int main(int argc, char*argv[])
 	// GL_TEXTURE0 + 3 was the old tree texture that was removed
 	glActiveTexture(GL_TEXTURE0 + 4);
 	glBindTexture(GL_TEXTURE_2D, trunkTextureID);
-	glActiveTexture(GL_TEXTURE0 + 5);
-	glBindTexture(GL_TEXTURE_2D, leavesTextureID);
 
 	//------------------------------------Shader Programs----------------------------------------//
 
@@ -205,10 +201,25 @@ int main(int argc, char*argv[])
 	int x, z; // Coordinates for the trees
 	float scaleFactor; // Random scale size for each tree
 	for (int i = 0; i < numberOfTrees; i++) {
-		x = (rand() % 101); // Generate number from 0 to 100
-		x -= 50; // Make its range from -50 to 50
-		z = (rand() % 101);
-		z -= 50;
+		while (true) {
+			bool tooClose = false;
+			x = (rand() % 101); // Generate number from 0 to 100
+			x -= 50; // Make its range from -50 to 50
+			z = (rand() % 101);
+			z -= 50;
+
+			for (int j = 0; j < i; j++) {
+				float distance = sqrt(pow((models[j].box.position.x - x), 2) +
+					pow((models[j].box.position.z - z), 2));
+				if (distance <= 3.0) {
+					tooClose = true;
+					break;
+				}
+			}
+			if (!tooClose) {
+				break;
+			}
+		}
 
 		scaleFactor = (int) ((rand() % 6) + 5); // Generate number from 5 to 10
 		scaleFactor = (float) scaleFactor / 10; // Get value from 0.5 to 1.0
