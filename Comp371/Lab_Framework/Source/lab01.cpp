@@ -123,7 +123,7 @@ int main(int argc, char*argv[])
 	//----------------------------------------Camera------------------------------------------//
 
 	// Camera parameters for view transform
-	vec3 cameraPosition(0.6f, 10.0f, 1.0f);
+	vec3 cameraPosition(0.6f, 1.0f, 1.0f);
 	vec3 cameraLookAt(0.0f, 0.0f, -1.0f);
 	vec3 cameraUp(0.0f, 1.0f, 0.0f);
 	vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
@@ -440,7 +440,7 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
 
-			for (int i = 0; i < models.size(); i++) {
+			for (int i = 0; i < numberOfTrees; i++) {
 				if (checkCollision(cameraPosition, models[i].box)) {
 					cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 					break;
@@ -452,7 +452,7 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 
-			for (int i = 0; i < models.size(); i++) {
+			for (int i = 0; i < numberOfTrees; i++) {
 				if (checkCollision(cameraPosition, models[i].box)) {
 					cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
 					break;
@@ -465,7 +465,7 @@ int main(int argc, char*argv[])
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
 
-			for (int i = 0; i < models.size(); i++) {
+			for (int i = 0; i < numberOfTrees; i++) {
 				if (checkCollision(cameraPosition, models[i].box)) {
 					cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 					break;
@@ -478,7 +478,7 @@ int main(int argc, char*argv[])
 			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
 
-			for (int i = 0; i < models.size(); i++) {
+			for (int i = 0; i < numberOfTrees; i++) {
 				if (checkCollision(cameraPosition, models[i].box)) {
 					cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 					break;

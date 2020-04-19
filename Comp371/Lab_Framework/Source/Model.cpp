@@ -23,15 +23,17 @@ Tree::Tree()
 {
 	translationVector = vec3(0.0f, 0.0f, 0.0f);
 	scaleVector = vec3(1.0f, 1.0f, 1.0f);
-	vec3 pos(-0.1483415f, 4.9745075f, -0.0472805f);
-	box = BoundingBox(pos, 0.8139465f, 5.1656975f, 0.7113755f);
+	//vec3 pos(-0.1483415f, 4.9745075f, -0.0472805f);
+	vec3 pos(-0.1483415f, 0.0f, -0.0472805f);
+	box = BoundingBox(pos, 0.8139465f, 10.140205f, 0.7113755f);
 }
 
 Tree::Tree(vec3 translation, vec3 scale)
 {
 	translationVector = translation;
 	scaleVector = scale;
-	vec3 pos(-0.1483415f, 4.9745075f, -0.0472805f);
+	//vec3 pos(-0.1483415f, 4.9745075f, -0.0472805f);
+	vec3 pos(-0.1483415f, 0.0f, -0.0472805f);
 	box = BoundingBox(vec3(pos.x + translation.x, pos.y + translation.y, pos.z + translation.z),
-		0.8139465f * scale.x, 5.1656975f * scale.y, 0.7113755f * scale.z);
+		0.8139465f * scale.x, 10.140205f * scale.y, 0.7113755f * scale.z);
 }
