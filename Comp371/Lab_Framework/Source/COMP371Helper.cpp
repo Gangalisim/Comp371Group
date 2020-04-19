@@ -539,12 +539,9 @@ double interpolate(double a, double b, double x)
 	return a * (1.0 - f) + b * f;
 }
 
-GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
+GLuint makeNoiseTexture(int seed, int zoom, double persistence, float lightColor[3], float darkColor[3]) {
 	GLfloat image[256][256][3];
 	PerlinNoise myNoise(seed, zoom, persistence);
-
-	float lightGreen[3]={50./255.,156./255.,50./255.};
-	float darkGreen[3]={34./255.,96./255.,34./255.};
 
 	double c;
 	
@@ -553,9 +550,9 @@ GLuint makeNoiseTexture(int seed, int zoom, double persistence) {
 		for(int j=0; j<256; j++)
 		{
 			c = (1.0 + myNoise.perlinNoise2D(8, i, j)) / 2.0;
-			image[i][j][0] = (GLfloat)interpolate(lightGreen[0], darkGreen[0], c);
-			image[i][j][1] = (GLfloat)interpolate(lightGreen[1], darkGreen[1], c);
-			image[i][j][2] = (GLfloat)interpolate(lightGreen[2], darkGreen[2], c);
+			image[i][j][0] = (GLfloat)interpolate(lightColor[0], darkColor[0], c);
+			image[i][j][1] = (GLfloat)interpolate(lightColor[1], darkColor[1], c);
+			image[i][j][2] = (GLfloat)interpolate(lightColor[2], darkColor[2], c);
 		}
 	}
 

@@ -21,18 +21,20 @@ int main(int argc, char*argv[])
 
 	//---------------------------------------Textures--------------------------------------------//
 	// Load Textures
+	float lightColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
+	float darkColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
 #if defined(PLATFORM_OSX)
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
 	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
 #endif
@@ -420,7 +422,16 @@ int main(int argc, char*argv[])
 		{
 			grassSeed = rand() % (3000000 - 2000000 + 1) + 2000000;
 			grassZoom = rand() % (12 - 1 + 1) + 1;
-			grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
+			if (snowEnabled) {
+				float lightColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
+				float darkColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
+				grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+			}
+			else {
+				float lightColor[3] = { 50. / 255.,156. / 255.,50. / 255. };
+				float darkColor[3] = { 34. / 255.,96. / 255.,34. / 255. };
+				grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+			}
 			glActiveTexture(GL_TEXTURE0 + 1);
 			glBindTexture(GL_TEXTURE_2D, grassTextureID);
 		}
@@ -499,6 +510,18 @@ int main(int argc, char*argv[])
 				snowPressed = true;
 				snowEnabled = !snowEnabled;
 			}
+			if (snowEnabled) {
+				float lightColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
+				float darkColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
+				grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+			}
+			else {
+				float lightColor[3] = { 50. / 255.,156. / 255.,50. / 255. };
+				float darkColor[3] = { 34. / 255.,96. / 255.,34. / 255. };
+				grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+			}
+			glActiveTexture(GL_TEXTURE0 + 1);
+			glBindTexture(GL_TEXTURE_2D, grassTextureID);
 		}
 		else {
 			snowPressed = false;
