@@ -38,7 +38,7 @@ int createVertexArrayObjectCube();
 int createVertexArrayObjectGround();
 int createVertexArrayObjectParticles();
 GLuint loadTexture(const char* filename);
-GLuint makeNoiseTexture(int seed, int zoom, double persistence);
+GLuint makeNoiseTexture(int seed, int zoom, double persistence, float lightColor[3], float darkColor[3]);
 GLuint setupModelEBO(string path, int& vertexCount);
 
 void setMat4(int shaderProgram, const GLchar* location, mat4 matrix);
