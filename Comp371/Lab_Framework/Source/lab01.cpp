@@ -1,8 +1,3 @@
-//
-// COMP 371 Labs Framework
-//
-// Created by Nicolas Bergeron on 20/06/2019.
-//
 
 #include "COMP371Helper.h"
 #include "Model.h"
@@ -31,13 +26,17 @@ int main(int argc, char*argv[])
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
-	GLuint snowflakeTextureID = loadTexture("Textures/particle.jpg");
+	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
+	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
+	GLuint leavesTextureID = loadTexture("Textures/leaves.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
 	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
+	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
+	GLuint leavesTextureID = loadTexture("../Assets/Textures/leaves.jpg");
 #endif
 
 	
@@ -46,6 +45,11 @@ int main(int argc, char*argv[])
 	glBindTexture(GL_TEXTURE_2D, grassTextureID);
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, snowflakeTextureID);
+	// GL_TEXTURE0 + 3 was the old tree texture that was removed
+	glActiveTexture(GL_TEXTURE0 + 4);
+	glBindTexture(GL_TEXTURE_2D, trunkTextureID);
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindTexture(GL_TEXTURE_2D, leavesTextureID);
 
 	//------------------------------------Shader Programs----------------------------------------//
 
@@ -62,9 +66,13 @@ int main(int argc, char*argv[])
 #if defined(PLATFORM_OSX)
 	string spherePath = "Models/UVSphereTriangle.obj";
 	string cubePath = "Models/cube.obj";
+	string trunkPath = "Models/trunk.obj";
+	string leavesPath = "Models/leaves.obj";
 #else
 	string spherePath = "../Assets/Models/UVSphereTriangle.obj";
 	string cubePath = "../Assets/Models/cube.obj";
+	string trunkPath = "../Assets/Models/trunk.obj";
+	string leavesPath = "../Assets/Models/leaves.obj";
 #endif
 
 	int sphereVertices;
@@ -72,6 +80,12 @@ int main(int argc, char*argv[])
 
 	int cubeVertices;
 	GLuint vaoCubeModel = setupModelEBO(cubePath, cubeVertices);
+
+	int trunkVertices;
+	GLuint vaoTrunkModel = setupModelEBO(trunkPath, trunkVertices);
+
+	int leavesVertices;
+	GLuint vaoLeavesModel = setupModelEBO(leavesPath, leavesVertices);
 
 	int vaoCube = createVertexArrayObjectCube();
 	int vaoGround = createVertexArrayObjectGround();
@@ -185,17 +199,27 @@ int main(int argc, char*argv[])
 	setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
 	setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 
+	vector<Model> models; // Store all trees in this vector
+	int numberOfTrees = 50;
 
-	// This is probably how we'll need to initiate objects, in a vector of 'Model's
-	Cube cube1(vec3(0.0f, 0.0f, 0.0f), vec3(0.4f, 0.4f, 0.4f));
-	Cube cube2(vec3(5.0f, 0.0f, -20.0f), vec3(1.0f, 1.0f, 1.0f));
-	vector<Model> models;
-	/*models.push_back(cube1);
-	models.push_back(cube2);*/
+	int x, z; // Coordinates for the trees
+	float scaleFactor; // Random scale size for each tree
+	for (int i = 0; i < numberOfTrees; i++) {
+		x = (rand() % 101); // Generate number from 0 to 100
+		x -= 50; // Make its range from -50 to 50
+		z = (rand() % 101);
+		z -= 50;
+
+		scaleFactor = (int) ((rand() % 6) + 5); // Generate number from 5 to 10
+		scaleFactor = (float) scaleFactor / 10; // Get value from 0.5 to 1.0
+
+		Tree tree(vec3(x, 0.0f, z), vec3(scaleFactor, scaleFactor, scaleFactor));
+		models.push_back(tree);
+	}
 
 	vector<Particle> snowParticles;
 	for (int i = 0; i < 1000; i++) {// create 1000 snow particles
-		snowParticles.push_back(Particle());
+		snowParticles.push_back(Particle()); // Generates random positioning in the constructor
 	}
 
 	//----------------------------------------------------------------------------------------//
@@ -239,6 +263,22 @@ int main(int argc, char*argv[])
 		setMat4(shaderProgramShadow, "worldMatrix", groundWorldMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		//----------------------------------Draw trees shadow----------------------------------//
+
+		for (int i = 0; i < numberOfTrees; i++) {
+			worldMatrix = translate(mat4(1.0f), models[i].translationVector) *
+				scale(mat4(1.0f), models[i].scaleVector);
+			setMat4(shaderProgramShadow, "worldMatrix", worldMatrix);
+
+			// Draw trunk
+			glBindVertexArray(vaoTrunkModel);
+			glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
+
+			// Draw leaves
+			glBindVertexArray(vaoLeavesModel);
+			glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+		}
+
 		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
 
 		// Cull backside again for the actual rendering
@@ -274,19 +314,30 @@ int main(int argc, char*argv[])
 		setFloat(shaderProgramTexture, "uvMultiplier", 1.0f);
 		setVec3(shaderProgramTexture, "aColor", vec3(1.0f, 1.0f, 1.0f));
 
-		//-----------------------------Draw Test Cubes for collision----------------------------//
+		//-----------------------------------Draw Trees---------------------------------------//
 
-		/*glBindVertexArray(vaoCubeModel);
-		mat4 worldMatrix;
-
-		for (int i = 0; i < models.size(); i++) {
-			worldMatrix = translate(mat4(1.0f), models[i].translationVector) * 
+		for (int i = 0; i < numberOfTrees; i++) {
+			worldMatrix = translate(mat4(1.0f), models[i].translationVector) *
 				scale(mat4(1.0f), models[i].scaleVector);
-			setMat4(shaderProgramBasic, "worldMatrix", worldMatrix);
-			glDrawElements(GL_TRIANGLES, cubeVertices, GL_UNSIGNED_INT, 0);
-		}*/
+			setMat4(shaderProgramTexture, "worldMatrix", worldMatrix);
+
+			// Draw trunk
+			glActiveTexture(GL_TEXTURE0 + 4);
+			glBindTexture(GL_TEXTURE_2D, trunkTextureID);
+			setTexture(shaderProgramTexture, "textureSampler", 4);
+			glBindVertexArray(vaoTrunkModel);
+			glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
+
+			// Draw leaves
+			glActiveTexture(GL_TEXTURE0 + 1);
+			glBindTexture(GL_TEXTURE_2D, grassTextureID);
+			setTexture(shaderProgramTexture, "textureSampler", 1);
+			glBindVertexArray(vaoLeavesModel);
+			glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+		}
 
 		//---------------------------------Draw Snow Particles----------------------------------//
+		
 		// Alternatively, we could use GL_ONE_MINUS_CONSTANT_COLOR instead of GL_DST_ALPHA
 		if (snowEnabled) {
 			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
