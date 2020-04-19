@@ -532,6 +532,22 @@ bool checkCollision(vec3 camera, BoundingBox b)
 	}
 }
 
+int getCurrentQuadrant(vec3 position)
+{
+	if (position.x >= 0 && position.z < 0) {
+		return 0;
+	}
+	else if (position.x < 0 && position.z < 0) {
+		return 1;
+	}
+	else if (position.x < 0 && position.z >= 0) {
+		return 2;
+	}
+	else { // if (position.x >= 0 && position.z >= 0)
+		return 3;
+	}
+}
+
 double interpolate(double a, double b, double x)
 {
 	double f = 6 * pow(x, 5) - 15 * pow(x, 4) + 10 * pow(x, 3);

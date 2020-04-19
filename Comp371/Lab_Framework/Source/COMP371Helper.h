@@ -48,3 +48,4 @@ void setTexture(int shaderProgram, const GLchar* location, int value);
 void setInt(int shaderProgram, const GLchar* location, int value);
 
 bool checkCollision(vec3 camera, BoundingBox b);
+int getCurrentQuadrant(vec3 position);

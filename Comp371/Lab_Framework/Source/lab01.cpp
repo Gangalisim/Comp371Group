@@ -134,7 +134,7 @@ int main(int argc, char*argv[])
 	setVec3(shaderProgramTexture, "viewPos", cameraPosition);
 
 	// Other camera parameters
-	float cameraSpeed = 1.0f;
+	float cameraSpeed = 2.0f;
 	float cameraFastSpeed = 2 * cameraSpeed;
 	float cameraHorizontalAngle = 90.0f;
 	float cameraVerticalAngle = 0.0f;
@@ -197,8 +197,10 @@ int main(int argc, char*argv[])
 	setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
 	setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 
-	vector<Model> models; // Store all trees in this vector
-	int numberOfTrees = 50;
+	//--------------------------------------Create trees----------------------------------------//
+
+	vector<vector<Model>> models(4); // Store all trees in this vector
+	int numberOfTrees = 75;
 
 	int x, z; // Coordinates for the trees
 	float scaleFactor; // Random scale size for each tree
@@ -210,12 +212,14 @@ int main(int argc, char*argv[])
 			z = (rand() % 101);
 			z -= 50;
 
-			for (int j = 0; j < i; j++) {
-				float distance = sqrt(pow((models[j].box.position.x - x), 2) +
-					pow((models[j].box.position.z - z), 2));
-				if (distance <= 3.0) {
-					tooClose = true;
-					break;
+			for (int j = 0; j < 4; j++) {// 4 because there are 4 quadrants
+				for (int k = 0; k < models[j].size(); k++) {
+					float distance = sqrt(pow((models[j][k].box.position.x - x), 2) +
+						pow((models[j][k].box.position.z - z), 2));
+					if (distance <= 3.0) {
+						tooClose = true;
+						break;
+					}
 				}
 			}
 			if (!tooClose) {
@@ -227,8 +231,12 @@ int main(int argc, char*argv[])
 		scaleFactor = (float) scaleFactor / 10; // Get value from 0.5 to 1.0
 
 		Tree tree(vec3(x, 0.0f, z), vec3(scaleFactor, scaleFactor, scaleFactor));
-		models.push_back(tree);
+
+		// Insert the tree into the vector of its quadrant
+		models[getCurrentQuadrant(vec3(x, 0.0f, z))].push_back(tree);
 	}
+
+	//--------------------------------------Create snow particles-------------------------------//
 
 	vector<Particle> snowParticles;
 	for (int i = 0; i < 1000; i++) {// create 1000 snow particles
@@ -278,18 +286,20 @@ int main(int argc, char*argv[])
 
 		//----------------------------------Draw trees shadow----------------------------------//
 
-		for (int i = 0; i < numberOfTrees; i++) {
-			worldMatrix = translate(mat4(1.0f), models[i].translationVector) *
-				scale(mat4(1.0f), models[i].scaleVector);
-			setMat4(shaderProgramShadow, "worldMatrix", worldMatrix);
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < models[i].size(); j++) {
+				worldMatrix = translate(mat4(1.0f), models[i][j].translationVector) *
+					scale(mat4(1.0f), models[i][j].scaleVector);
+				setMat4(shaderProgramShadow, "worldMatrix", worldMatrix);
 
-			// Draw trunk
-			glBindVertexArray(vaoTrunkModel);
-			glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
+				// Draw trunk
+				glBindVertexArray(vaoTrunkModel);
+				glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
 
-			// Draw leaves
-			glBindVertexArray(vaoLeavesModel);
-			glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+				// Draw leaves
+				glBindVertexArray(vaoLeavesModel);
+				glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+			}
 		}
 
 		//--------------------------------NOW DO ACTUAL RENDERING-------------------------------//
@@ -329,24 +339,26 @@ int main(int argc, char*argv[])
 
 		//-----------------------------------Draw Trees---------------------------------------//
 
-		for (int i = 0; i < numberOfTrees; i++) {
-			worldMatrix = translate(mat4(1.0f), models[i].translationVector) *
-				scale(mat4(1.0f), models[i].scaleVector);
-			setMat4(shaderProgramTexture, "worldMatrix", worldMatrix);
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < models[i].size(); j++) {
+				worldMatrix = translate(mat4(1.0f), models[i][j].translationVector) *
+					scale(mat4(1.0f), models[i][j].scaleVector);
+				setMat4(shaderProgramTexture, "worldMatrix", worldMatrix);
 
-			// Draw trunk
-			glActiveTexture(GL_TEXTURE0 + 4);
-			glBindTexture(GL_TEXTURE_2D, trunkTextureID);
-			setTexture(shaderProgramTexture, "textureSampler", 4);
-			glBindVertexArray(vaoTrunkModel);
-			glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
+				// Draw trunk
+				glActiveTexture(GL_TEXTURE0 + 4);
+				glBindTexture(GL_TEXTURE_2D, trunkTextureID);
+				setTexture(shaderProgramTexture, "textureSampler", 4);
+				glBindVertexArray(vaoTrunkModel);
+				glDrawElements(GL_TRIANGLES, trunkVertices, GL_UNSIGNED_INT, 0);
 
-			// Draw leaves
-			glActiveTexture(GL_TEXTURE0 + 1);
-			glBindTexture(GL_TEXTURE_2D, grassTextureID);
-			setTexture(shaderProgramTexture, "textureSampler", 1);
-			glBindVertexArray(vaoLeavesModel);
-			glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+				// Draw leaves
+				glActiveTexture(GL_TEXTURE0 + 1);
+				glBindTexture(GL_TEXTURE_2D, grassTextureID);
+				setTexture(shaderProgramTexture, "textureSampler", 1);
+				glBindVertexArray(vaoLeavesModel);
+				glDrawElements(GL_TRIANGLES, leavesVertices, GL_UNSIGNED_INT, 0);
+			}
 		}
 
 		//---------------------------------Draw Snow Particles----------------------------------//
@@ -440,8 +452,9 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
 
-			for (int i = 0; i < numberOfTrees; i++) {
-				if (checkCollision(cameraPosition, models[i].box)) {
+			int currentQuadrant = getCurrentQuadrant(cameraPosition);
+			for (int i = 0; i < models[currentQuadrant].size(); i++) {
+				if (checkCollision(cameraPosition, models[currentQuadrant][i].box)) {
 					cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 					break;
 				}
@@ -452,8 +465,9 @@ int main(int argc, char*argv[])
 		{
 			cameraPosition += cameraSideVector * currentCameraSpeed * dt;
 
-			for (int i = 0; i < numberOfTrees; i++) {
-				if (checkCollision(cameraPosition, models[i].box)) {
+			int currentQuadrant = getCurrentQuadrant(cameraPosition);
+			for (int i = 0; i < models[currentQuadrant].size(); i++) {
+				if (checkCollision(cameraPosition, models[currentQuadrant][i].box)) {
 					cameraPosition -= cameraSideVector * currentCameraSpeed * dt;
 					break;
 				}
@@ -465,8 +479,9 @@ int main(int argc, char*argv[])
 			cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
 
-			for (int i = 0; i < numberOfTrees; i++) {
-				if (checkCollision(cameraPosition, models[i].box)) {
+			int currentQuadrant = getCurrentQuadrant(cameraPosition);
+			for (int i = 0; i < models[currentQuadrant].size(); i++) {
+				if (checkCollision(cameraPosition, models[currentQuadrant][i].box)) {
 					cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 					break;
 				}
@@ -478,8 +493,9 @@ int main(int argc, char*argv[])
 			cameraPosition -= cameraLookAt * currentCameraSpeed * dt;
 			cameraPosition.y = std::max(0.1f, cameraPosition.y); // Make sure it doesn't go below ground
 
-			for (int i = 0; i < numberOfTrees; i++) {
-				if (checkCollision(cameraPosition, models[i].box)) {
+			int currentQuadrant = getCurrentQuadrant(cameraPosition);
+			for (int i = 0; i < models[currentQuadrant].size(); i++) {
+				if (checkCollision(cameraPosition, models[currentQuadrant][i].box)) {
 					cameraPosition += cameraLookAt * currentCameraSpeed * dt;
 					break;
 				}
