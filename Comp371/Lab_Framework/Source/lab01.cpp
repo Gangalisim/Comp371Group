@@ -21,20 +21,20 @@ int main(int argc, char*argv[])
 
 	//---------------------------------------Textures--------------------------------------------//
 	// Load Textures
-	float lightColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
-	float darkColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
+	float lightTextureColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
+	float darkTextureColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
 #if defined(PLATFORM_OSX)
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
 #endif
