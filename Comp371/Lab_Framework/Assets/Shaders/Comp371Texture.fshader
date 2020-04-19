@@ -9,8 +9,9 @@ in vec3 FragPos;
 in vec4 fragment_position_light_space;
 in vec4 ioEyeSpacePosition;
 in float visibility;
-uniform sampler2D textureSampler;
 
+uniform sampler2D textureSampler;
+uniform vec3 lightColor;
 uniform vec3 lightPos;
 uniform float angleZ = 0.0;
 uniform vec3 viewPos = vec3(1.0f, 1.0f, 1.0f);
@@ -55,7 +56,7 @@ float ShadowCalculation(vec4 fragment_position_light_space)
 
 void main()
 {
-   vec3 lightColor = vec3(1.0f, 1.0f, 1.0f); // white
+   
 
    //  ------------------Ambient------------------- //
    vec3 ambient = ambientStrength * lightColor; //* color; // ambientStrength * light color (white)
