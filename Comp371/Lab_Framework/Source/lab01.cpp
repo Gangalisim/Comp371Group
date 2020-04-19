@@ -212,6 +212,12 @@ int main(int argc, char*argv[])
 	setInt(shaderProgramTexture, "fogEnabled", fogEnabled);
 	setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 
+	float fogDensity = .014f; //default density then set the float uni
+
+	setFloat(shaderProgramBasic, "density", fogDensity);
+	setFloat(shaderProgramTexture, "density", fogDensity);
+	setFloat(shaderProgramParticles, "density", fogDensity);
+
 	//--------------------------------------Create trees----------------------------------------//
 
 	vector<vector<Model>> models(4); // Store all trees in this vector
@@ -561,6 +567,41 @@ int main(int argc, char*argv[])
 				setInt(shaderProgramParticles, "fogEnabled", fogEnabled);
 			}
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) //increase fog density incrementally 
+		{
+			if (fogDensity <= 1)
+			{
+				fogDensity += .001f;
+				setFloat(shaderProgramBasic, "density", fogDensity);
+				setFloat(shaderProgramTexture, "density", fogDensity);
+				setFloat(shaderProgramParticles, "density", fogDensity);
+			}
+			}
+
+		if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) //decrease fog density incrementally 
+		{
+			if (fogDensity >= 0)
+			{
+				fogDensity -= .001f;
+				setFloat(shaderProgramBasic, "density", fogDensity);
+				setFloat(shaderProgramTexture, "density", fogDensity);
+				setFloat(shaderProgramParticles, "density", fogDensity);
+			}
+			if (fogDensity < 0) {
+				fogDensity = 0;
+
+				setFloat(shaderProgramBasic, "density", fogDensity);
+				setFloat(shaderProgramTexture, "density", fogDensity);
+				setFloat(shaderProgramParticles, "density", fogDensity);
+
+			 }
+
+
+		}
+
+
+
 
 		// Toggle snow on/off
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
