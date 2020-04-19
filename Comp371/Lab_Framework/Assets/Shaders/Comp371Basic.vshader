@@ -8,7 +8,7 @@ uniform mat4 worldMatrix = mat4(1.0);
 uniform mat4 viewMatrix = mat4(1.0);  // default value for view matrix (identity)
 uniform mat4 projectionMatrix = mat4(1.0);
 
-const float density = .027f;
+uniform float density = .027f;
 const float gradient = 1.5;
 
 
