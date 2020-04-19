@@ -4,6 +4,9 @@
 #include <vector>
 #include "Particles.h"
 
+#include <irrKlang.h>
+using namespace irrklang;
+
 using namespace glm;
 using namespace std;
 
@@ -188,6 +191,9 @@ int main(int argc, char*argv[])
 
 	bool snowEnabled = true; // Used for toggling snow on/off
 	bool snowPressed = false;// Goes with above /\
+
+	ISoundEngine* SoundEngine = createIrrKlangDevice();
+	SoundEngine->play2D("../Assets/Audio/Drowning Pool - Bodies.mp3", GL_TRUE);
 
 	//-----------------------------------------Fog ------------------------------------------//
 

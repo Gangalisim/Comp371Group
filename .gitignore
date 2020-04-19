@@ -2,5 +2,4 @@
 *.bat
 ThirdParty/
 Build/
-Bin/
 .vs/
