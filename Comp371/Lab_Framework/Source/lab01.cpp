@@ -24,20 +24,20 @@ int main(int argc, char*argv[])
 
 	//---------------------------------------Textures--------------------------------------------//
 	// Load Textures
-	float lightColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
-	float darkColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
+	float lightTextureColor[3] = { 255. / 255., 255. / 255., 255. / 255. };
+	float darkTextureColor[3] = { 147. / 255.,231. / 255., 251 / 255. };
 #if defined(PLATFORM_OSX)
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("Textures/trunk.jpg");
 #else
 	int grassSeed = 2354583;
 	int grassZoom = 1;
 	double grassPersistence = 0.7;
-	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightColor, darkColor);
+	GLuint grassTextureID = makeNoiseTexture(grassSeed, grassZoom, grassPersistence, lightTextureColor, darkTextureColor);
 	GLuint snowflakeTextureID = loadTexture("../Assets/Textures/particle.png");
 	GLuint trunkTextureID = loadTexture("../Assets/Textures/trunk.jpg");
 #endif
@@ -75,6 +75,15 @@ int main(int argc, char*argv[])
 	string trunkPath = "../Assets/Models/trunk.obj";
 	string leavesPath = "../Assets/Models/leaves.obj";
 #endif
+	//light Variables
+	vec3 lightPos = vec3(0.001f, 200.0f, -150.0f);
+	vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
+	
+	//Initial LightPos and light color
+	setVec3(shaderProgramBasic, "lightPos", lightPos);
+	setVec3(shaderProgramTexture, "lightPos", lightPos);
+	setVec3(shaderProgramTexture, "lightColor", lightColor);
+	setVec3(shaderProgramBasic, "lightPos", lightColor);
 
 	int sphereVertices;
 	GLuint vaoSphereModel = setupModelEBO(spherePath, sphereVertices);
@@ -261,13 +270,12 @@ int main(int argc, char*argv[])
 
 		//-----------------------------------------SHADOWS--------------------------------------//
 
-		vec3 lightPos = vec3(0.001f, 200.0f, -150.0f);
+		
 		mat4 lightProjectionMatrix = ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 400.0f);
 		mat4 lightViewMatrix = lookAt(lightPos, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 		mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
-		setVec3(shaderProgramBasic, "lightPos", lightPos);
-		setVec3(shaderProgramTexture, "lightPos", lightPos);
+		
 		setMat4(shaderProgramBasic, "lightSpaceMatrix", lightSpaceMatrix);
 		setMat4(shaderProgramTexture, "lightSpaceMatrix", lightSpaceMatrix);
 
@@ -435,6 +443,34 @@ int main(int argc, char*argv[])
 
 		glm::normalize(cameraSideVector);
 		
+		if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) 
+		{
+			 lightPos = vec3(100.0f, 50.0f, -150.0f);
+			 lightColor = vec3(1.0f, 0.5f, 0.0f);
+			setVec3(shaderProgramBasic, "lightPos", lightPos);
+			setVec3(shaderProgramBasic, "lightColor", lightColor);
+			setVec3(shaderProgramTexture, "lightPos",lightPos);
+			setVec3(shaderProgramTexture, "lightColor", lightColor);
+			
+		}
+		if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) 
+		{
+			 lightPos = vec3(0.001f, 200.0f, -150.0f);
+			 lightColor = vec3(1.0f, 1.0f, 1.0f);
+			 setVec3(shaderProgramBasic, "lightPos", lightPos);
+			 setVec3(shaderProgramBasic, "lightColor", lightColor);
+			 setVec3(shaderProgramTexture, "lightPos", lightPos);
+			 setVec3(shaderProgramTexture, "lightColor", lightColor);
+		}
+		if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+		{
+			lightPos = vec3(-100.0f, 200.0f, -20.0f);
+			lightColor = vec3(1.0f, 0.5f, 0.0f);
+			setVec3(shaderProgramBasic, "lightPos", lightPos);
+			setVec3(shaderProgramBasic, "lightColor", lightColor);
+			setVec3(shaderProgramTexture, "lightPos", lightPos);
+			setVec3(shaderProgramTexture, "lightColor", lightColor);
+		}
 
 		if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) // regenerate grass
 		{
@@ -553,6 +589,11 @@ int main(int argc, char*argv[])
 
 		setVec3(shaderProgramBasic, "viewPos", cameraPosition);
 		setVec3(shaderProgramTexture, "viewPos", cameraPosition);
+
+		setVec3(shaderProgramBasic, "lightPos", lightPos);
+		setVec3(shaderProgramBasic, "lightPos", lightColor);
+		setVec3(shaderProgramTexture, "lightPos", lightPos);
+		setVec3(shaderProgramTexture, "lightColor", lightColor);
 
 		mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
 
